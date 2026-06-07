@@ -11,7 +11,6 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     html { scroll-behavior: auto; }
 
     body {
@@ -57,47 +56,46 @@
       width: 0%;
       transition: width 0.25s;
     }
-
     .loading-label {
       color: rgba(255,255,255,0.45);
       font-size: 0.82rem;
     }
 
-    /* ── Fixed panorama canvas ── */
-    #panorama-wrap {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
+    /* ══════════════════════════════════════
+       HERO – sticky scroll-pinned panorama
+    ══════════════════════════════════════ */
+    .hero {
+      position: relative;
+      height: 450vh; /* tall scroll driver */
     }
+
+    .hero-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+    }
+
     #panorama-canvas {
       display: block;
       width: 100%;
       height: 100%;
     }
 
-    /* ── Scroll driver (tall invisible element) ── */
-    .scroll-driver {
-      height: 500vh;
-      position: relative;
-      z-index: 1;
-      pointer-events: none;
-    }
-
     /* ── Top progress bar ── */
     #progress {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       height: 3px;
       width: 0%;
       background: var(--blue);
       z-index: 50;
-      transition: width 0.08s;
     }
 
     /* ── Top bar ── */
     .top-bar {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       right: 0;
@@ -132,9 +130,27 @@
       justify-content: center;
     }
 
+    /* ── Degree counter ── */
+    #deg-counter {
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 45;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(6px);
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
     /* ── Bottom panel ── */
     .bottom-panel {
-      position: fixed;
+      position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
@@ -155,7 +171,6 @@
       text-transform: uppercase;
       margin-bottom: 12px;
     }
-
     .prop-title {
       color: #fff;
       font-size: 2rem;
@@ -163,13 +178,11 @@
       line-height: 1.15;
       margin-bottom: 6px;
     }
-
     .prop-sub {
       color: rgba(255,255,255,0.6);
       font-size: 0.95rem;
       margin-bottom: 22px;
     }
-
     .stats {
       display: flex;
       gap: 36px;
@@ -188,7 +201,7 @@
 
     /* ── Scroll hint ── */
     #scroll-hint {
-      position: fixed;
+      position: absolute;
       bottom: 160px;
       left: 50%;
       transform: translateX(-50%);
@@ -200,7 +213,7 @@
       color: rgba(255,255,255,0.75);
       font-size: 0.8rem;
       pointer-events: none;
-      transition: opacity 0.4s;
+      transition: opacity 0.5s;
     }
     .mouse-icon {
       width: 22px;
@@ -221,13 +234,13 @@
       animation: mouseDot 1.6s ease-in-out infinite;
     }
     @keyframes mouseDot {
-      0%   { transform: translateX(-50%) translateY(0);   opacity: 1; }
+      0%   { transform: translateX(-50%) translateY(0);    opacity: 1; }
       100% { transform: translateX(-50%) translateY(14px); opacity: 0; }
     }
 
     /* ── Rotation track (right side) ── */
     .rot-track-wrap {
-      position: fixed;
+      position: absolute;
       right: 24px;
       top: 50%;
       transform: translateY(-50%);
@@ -263,23 +276,39 @@
       transition: top 0.08s;
     }
 
-    /* ── Degree counter ── */
-    #deg-counter {
-      position: fixed;
-      top: 22px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 45;
-      color: rgba(255,255,255,0.55);
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      background: rgba(0,0,0,0.3);
-      backdrop-filter: blur(6px);
-      padding: 4px 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.1);
+    /* ══════════════════════════════════════
+       CONTENT below hero
+    ══════════════════════════════════════ */
+    .page-content {
+      background: var(--dark);
+      padding: 80px 40px;
+      max-width: 900px;
+      margin: 0 auto;
     }
+    .page-content h2 {
+      color: #fff;
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .page-content p {
+      color: rgba(255,255,255,0.6);
+      line-height: 1.7;
+      font-size: 1rem;
+      margin-bottom: 24px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: var(--blue);
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .cta-btn:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -291,63 +320,86 @@
   <div class="loading-label" id="loading-label">Ladataan panoraamaa…</div>
 </div>
 
-<!-- Scroll progress bar -->
-<div id="progress"></div>
+<!-- ══ HERO ══ -->
+<section class="hero" id="hero">
+  <div class="hero-sticky">
 
-<!-- Top bar -->
-<div class="top-bar">
-  <a class="logo" href="#">Asunto<span>raatali</span></a>
-  <div class="badge-360">360°</div>
-</div>
+    <!-- Canvas fills sticky container -->
+    <canvas id="panorama-canvas"></canvas>
 
-<!-- Degree counter -->
-<div id="deg-counter">0°</div>
+    <!-- UI overlaid on top of canvas -->
+    <div id="progress"></div>
 
-<!-- Panorama -->
-<div id="panorama-wrap">
-  <canvas id="panorama-canvas"></canvas>
-</div>
-
-<!-- Scroll driver -->
-<div class="scroll-driver"></div>
-
-<!-- Bottom panel -->
-<div class="bottom-panel">
-  <div class="chip">360° Virtuaaliesittely</div>
-  <div class="prop-title">Moderni keittiö</div>
-  <div class="prop-sub">Scrollaa kierrellä tilaa ympäri</div>
-  <div class="stats">
-    <div>
-      <div class="stat-val">360°</div>
-      <div class="stat-lbl">Panoraama</div>
+    <div class="top-bar">
+      <a class="logo" href="#">Asunto<span>raatali</span></a>
+      <div class="badge-360">360°</div>
     </div>
-    <div>
-      <div class="stat-val">4K</div>
-      <div class="stat-lbl">Resoluutio</div>
+
+    <div id="deg-counter">221°</div>
+
+    <div class="bottom-panel">
+      <div class="chip">360° Virtuaaliesittely</div>
+      <div class="prop-title">Moderni keittiö</div>
+      <div class="prop-sub">Scrollaa kierrellä tilaa ympäri</div>
+      <div class="stats">
+        <div>
+          <div class="stat-val">360°</div>
+          <div class="stat-lbl">Panoraama</div>
+        </div>
+        <div>
+          <div class="stat-val">4K</div>
+          <div class="stat-lbl">Resoluutio</div>
+        </div>
+        <div>
+          <div class="stat-val">VR</div>
+          <div class="stat-lbl">Yhteensopiva</div>
+        </div>
+      </div>
     </div>
-    <div>
-      <div class="stat-val">VR</div>
-      <div class="stat-lbl">Yhteensopiva</div>
+
+    <div id="scroll-hint">
+      <div class="mouse-icon"><div class="mouse-dot"></div></div>
+      <span>Scrollaa kierrellä tilaa</span>
     </div>
+
+    <div class="rot-track-wrap">
+      <div class="rot-label">kierrä</div>
+      <div class="rot-track"><div id="rot-thumb"></div></div>
+    </div>
+
+  </div><!-- /.hero-sticky -->
+</section>
+
+<!-- ══ CONTENT BELOW HERO ══ -->
+<section style="background: var(--dark); padding: 0 0 80px;">
+  <div class="page-content">
+    <h2>Tervetuloa virtuaalikierrokselle</h2>
+    <p>
+      Tämä 360°-panoraama on renderöity Asuntoraatalin kohteesta. Scrollaamalla ylöspäin
+      pääset pyörittämään tilan ympäri ja tutustumaan kohteeseen ennen paikan päälle tuloa.
+    </p>
+    <p>
+      Ominaisuus integroidaan asuntoraatali.fi-sivulle Elementor Custom HTML -widgetinä
+      tai shortcoden avulla.
+    </p>
+    <a class="cta-btn" href="https://asuntoraatali.fi" target="_blank">
+      Katso kaikki kohteet →
+    </a>
   </div>
-</div>
+</section>
 
-<!-- Scroll hint -->
-<div id="scroll-hint">
-  <div class="mouse-icon"><div class="mouse-dot"></div></div>
-  <span>Scrollaa kierrellä tilaa</span>
-</div>
-
-<!-- Rotation track -->
-<div class="rot-track-wrap">
-  <div class="rot-label">kierrä</div>
-  <div class="rot-track"><div id="rot-thumb"></div></div>
-</div>
-
-<!-- Three.js r134 CDN -->
+<!-- Three.js r134 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
-  /* ── Renderer & Scene ── */
+  /* ── Config ──────────────────────────────────────────────── */
+  const IMAGE_URL   = 'https://asuntoraatali.fi/wp-content/uploads/2026/06/spherical-scaled.jpg';
+  const START_DEG   = 221;                               // starting camera angle in degrees
+  const START_RAD   = START_DEG * (Math.PI / 180);
+  const ROTATIONS   = 0.45;                              // total turns over full hero scroll (slow)
+  const LERP        = 0.03;                              // smoothing (lower = slower/smoother)
+  const THUMB_MAX   = 88;                                // px – track range for thumb
+
+  /* ── Three.js setup ─────────────────────────────────────── */
   const canvas   = document.getElementById('panorama-canvas');
   const scene    = new THREE.Scene();
   const camera   = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
@@ -355,22 +407,25 @@
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(innerWidth, innerHeight);
 
-  /* ── Sphere (inside-out) ── */
+  /* Inside-out sphere */
   const geo = new THREE.SphereGeometry(500, 64, 32);
   geo.scale(-1, 1, 1);
 
-  /* ── Load panorama texture ── */
-  const barFill     = document.getElementById('bar-fill');
-  const loadLabel   = document.getElementById('loading-label');
-  const loadScreen  = document.getElementById('loading');
+  /* ── Load texture ───────────────────────────────────────── */
+  const barFill    = document.getElementById('bar-fill');
+  const loadLabel  = document.getElementById('loading-label');
+  const loadScreen = document.getElementById('loading');
 
   let sphere = null;
 
   new THREE.TextureLoader().load(
-    'panorama.png',
+    IMAGE_URL,
     (tex) => {
       tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
       sphere = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex }));
+      sphere.rotation.y = START_RAD;
       scene.add(sphere);
 
       barFill.style.width = '100%';
@@ -383,58 +438,57 @@
     (e) => {
       if (e.total > 0) {
         const p = Math.round(e.loaded / e.total * 100);
-        barFill.style.width = p + '%';
+        barFill.style.width   = p + '%';
         loadLabel.textContent = `Ladataan… ${p}%`;
       }
     },
-    () => { loadLabel.textContent = 'Virhe ladattaessa kuvaa'; }
+    () => { loadLabel.textContent = 'Virhe – tarkista kuvan URL'; }
   );
 
   camera.position.set(0, 0, 0.01);
 
-  /* ── Scroll → rotation mapping ── */
-  const ROTATIONS = 1.5;   // how many full turns over the full scroll
-  let targetY  = 0;
-  let currentY = 0;
+  /* ── Scroll → rotation (relative to hero section) ───────── */
+  let targetY  = START_RAD;
+  let currentY = START_RAD;
 
+  const heroEl     = document.getElementById('hero');
   const progressEl = document.getElementById('progress');
   const rotThumb   = document.getElementById('rot-thumb');
   const scrollHint = document.getElementById('scroll-hint');
   const degCounter = document.getElementById('deg-counter');
 
-  const THUMB_MAX = 88; // px – track height minus thumb height
-
   window.addEventListener('scroll', () => {
-    const maxScroll = document.body.scrollHeight - innerHeight;
-    const pct       = Math.min(window.scrollY / maxScroll, 1);
+    const heroTop    = heroEl.offsetTop;
+    const heroDriver = heroEl.offsetHeight - innerHeight;   // scrollable range inside hero
+    const scrolled   = Math.max(0, window.scrollY - heroTop);
+    const pct        = Math.min(scrolled / heroDriver, 1);
 
-    targetY = pct * Math.PI * 2 * ROTATIONS;
+    targetY = START_RAD + pct * Math.PI * 2 * ROTATIONS;
 
-    progressEl.style.width   = (pct * 100) + '%';
-    rotThumb.style.top        = (pct * THUMB_MAX) + 'px';
+    progressEl.style.width = (pct * 100) + '%';
+    rotThumb.style.top     = (pct * THUMB_MAX) + 'px';
 
-    if (window.scrollY > 40) scrollHint.style.opacity = '0';
-    else                       scrollHint.style.opacity = '1';
+    scrollHint.style.opacity = scrolled > 60 ? '0' : '1';
   });
 
-  /* ── Animation loop ── */
+  /* ── Animation loop ─────────────────────────────────────── */
   function tick() {
     requestAnimationFrame(tick);
 
-    // Smooth lerp
-    currentY += (targetY - currentY) * 0.055;
+    currentY += (targetY - currentY) * LERP;
 
     if (sphere) sphere.rotation.y = currentY;
 
-    // Degree counter (0–360, wrapping)
-    const deg = Math.round(((currentY % (Math.PI * 2)) / (Math.PI * 2)) * 360 + 360) % 360;
+    /* Degree counter – normalise to 0–360 */
+    const raw = (currentY % (Math.PI * 2));
+    const deg = Math.round(((raw < 0 ? raw + Math.PI * 2 : raw) / (Math.PI * 2)) * 360);
     degCounter.textContent = deg + '°';
 
     renderer.render(scene, camera);
   }
   tick();
 
-  /* ── Resize ── */
+  /* ── Resize ─────────────────────────────────────────────── */
   window.addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
