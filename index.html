@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asuntoraatali – 360° Panoraama</title>
+  <style>
+    :root {
+      --blue: #1a56db;
+      --dark: #0c111d;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: auto; }
+
+    body {
+      background: var(--dark);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ── Loading screen ── */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--dark);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      transition: opacity 0.6s ease;
+    }
+    #loading.fade-out { opacity: 0; pointer-events: none; }
+
+    .loading-logo {
+      color: #fff;
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .loading-logo span { color: var(--blue); }
+
+    .bar-track {
+      width: 220px;
+      height: 4px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.25s;
+    }
+
+    .loading-label {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.82rem;
+    }
+
+    /* ── Fixed panorama canvas ── */
+    #panorama-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+    #panorama-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Scroll driver (tall invisible element) ── */
+    .scroll-driver {
+      height: 500vh;
+      position: relative;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ── Top progress bar ── */
+    #progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      width: 0%;
+      background: var(--blue);
+      z-index: 50;
+      transition: width 0.08s;
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%);
+    }
+    .logo {
+      color: #fff;
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      text-decoration: none;
+    }
+    .logo span { color: var(--blue); }
+
+    .badge-360 {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Bottom panel ── */
+    .bottom-panel {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      padding: 36px 32px 32px;
+      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
+    }
+
+    .chip {
+      display: inline-block;
+      background: var(--blue);
+      color: #fff;
+      padding: 3px 14px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .prop-title {
+      color: #fff;
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+
+    .prop-sub {
+      color: rgba(255,255,255,0.6);
+      font-size: 0.95rem;
+      margin-bottom: 22px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 36px;
+    }
+    .stat-val {
+      color: #fff;
+      font-size: 1.45rem;
+      font-weight: 700;
+    }
+    .stat-lbl {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+
+    /* ── Scroll hint ── */
+    #scroll-hint {
+      position: fixed;
+      bottom: 160px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 45;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 9px;
+      color: rgba(255,255,255,0.75);
+      font-size: 0.8rem;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+    .mouse-icon {
+      width: 22px;
+      height: 34px;
+      border: 2px solid rgba(255,255,255,0.55);
+      border-radius: 11px;
+      position: relative;
+    }
+    .mouse-dot {
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 7px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 2px;
+      animation: mouseDot 1.6s ease-in-out infinite;
+    }
+    @keyframes mouseDot {
+      0%   { transform: translateX(-50%) translateY(0);   opacity: 1; }
+      100% { transform: translateX(-50%) translateY(14px); opacity: 0; }
+    }
+
+    /* ── Rotation track (right side) ── */
+    .rot-track-wrap {
+      position: fixed;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 45;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .rot-label {
+      color: rgba(255,255,255,0.4);
+      font-size: 0.62rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      writing-mode: vertical-rl;
+    }
+    .rot-track {
+      width: 4px;
+      height: 110px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+      position: relative;
+    }
+    #rot-thumb {
+      position: absolute;
+      width: 10px;
+      height: 22px;
+      background: var(--blue);
+      border-radius: 5px;
+      left: -3px;
+      top: 0;
+      box-shadow: 0 0 10px rgba(26,86,219,0.7);
+      transition: top 0.08s;
+    }
+
+    /* ── Degree counter ── */
+    #deg-counter {
+      position: fixed;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 45;
+      color: rgba(255,255,255,0.55);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(6px);
+      padding: 4px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading">
+  <div class="loading-logo">Asunto<span>raatali</span></div>
+  <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
+  <div class="loading-label" id="loading-label">Ladataan panoraamaa…</div>
+</div>
+
+<!-- Scroll progress bar -->
+<div id="progress"></div>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <a class="logo" href="#">Asunto<span>raatali</span></a>
+  <div class="badge-360">360°</div>
+</div>
+
+<!-- Degree counter -->
+<div id="deg-counter">0°</div>
+
+<!-- Panorama -->
+<div id="panorama-wrap">
+  <canvas id="panorama-canvas"></canvas>
+</div>
+
+<!-- Scroll driver -->
+<div class="scroll-driver"></div>
+
+<!-- Bottom panel -->
+<div class="bottom-panel">
+  <div class="chip">360° Virtuaaliesittely</div>
+  <div class="prop-title">Moderni keittiö</div>
+  <div class="prop-sub">Scrollaa kierrellä tilaa ympäri</div>
+  <div class="stats">
+    <div>
+      <div class="stat-val">360°</div>
+      <div class="stat-lbl">Panoraama</div>
+    </div>
+    <div>
+      <div class="stat-val">4K</div>
+      <div class="stat-lbl">Resoluutio</div>
+    </div>
+    <div>
+      <div class="stat-val">VR</div>
+      <div class="stat-lbl">Yhteensopiva</div>
+    </div>
+  </div>
+</div>
+
+<!-- Scroll hint -->
+<div id="scroll-hint">
+  <div class="mouse-icon"><div class="mouse-dot"></div></div>
+  <span>Scrollaa kierrellä tilaa</span>
+</div>
+
+<!-- Rotation track -->
+<div class="rot-track-wrap">
+  <div class="rot-label">kierrä</div>
+  <div class="rot-track"><div id="rot-thumb"></div></div>
+</div>
+
+<!-- Three.js r134 CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+  /* ── Renderer & Scene ── */
+  const canvas   = document.getElementById('panorama-canvas');
+  const scene    = new THREE.Scene();
+  const camera   = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+
+  /* ── Sphere (inside-out) ── */
+  const geo = new THREE.SphereGeometry(500, 64, 32);
+  geo.scale(-1, 1, 1);
+
+  /* ── Load panorama texture ── */
+  const barFill     = document.getElementById('bar-fill');
+  const loadLabel   = document.getElementById('loading-label');
+  const loadScreen  = document.getElementById('loading');
+
+  let sphere = null;
+
+  new THREE.TextureLoader().load(
+    'panorama.png',
+    (tex) => {
+      tex.minFilter = THREE.LinearFilter;
+      sphere = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex }));
+      scene.add(sphere);
+
+      barFill.style.width = '100%';
+      loadLabel.textContent = 'Valmis!';
+      setTimeout(() => {
+        loadScreen.classList.add('fade-out');
+        setTimeout(() => loadScreen.style.display = 'none', 650);
+      }, 280);
+    },
+    (e) => {
+      if (e.total > 0) {
+        const p = Math.round(e.loaded / e.total * 100);
+        barFill.style.width = p + '%';
+        loadLabel.textContent = `Ladataan… ${p}%`;
+      }
+    },
+    () => { loadLabel.textContent = 'Virhe ladattaessa kuvaa'; }
+  );
+
+  camera.position.set(0, 0, 0.01);
+
+  /* ── Scroll → rotation mapping ── */
+  const ROTATIONS = 1.5;   // how many full turns over the full scroll
+  let targetY  = 0;
+  let currentY = 0;
+
+  const progressEl = document.getElementById('progress');
+  const rotThumb   = document.getElementById('rot-thumb');
+  const scrollHint = document.getElementById('scroll-hint');
+  const degCounter = document.getElementById('deg-counter');
+
+  const THUMB_MAX = 88; // px – track height minus thumb height
+
+  window.addEventListener('scroll', () => {
+    const maxScroll = document.body.scrollHeight - innerHeight;
+    const pct       = Math.min(window.scrollY / maxScroll, 1);
+
+    targetY = pct * Math.PI * 2 * ROTATIONS;
+
+    progressEl.style.width   = (pct * 100) + '%';
+    rotThumb.style.top        = (pct * THUMB_MAX) + 'px';
+
+    if (window.scrollY > 40) scrollHint.style.opacity = '0';
+    else                       scrollHint.style.opacity = '1';
+  });
+
+  /* ── Animation loop ── */
+  function tick() {
+    requestAnimationFrame(tick);
+
+    // Smooth lerp
+    currentY += (targetY - currentY) * 0.055;
+
+    if (sphere) sphere.rotation.y = currentY;
+
+    // Degree counter (0–360, wrapping)
+    const deg = Math.round(((currentY % (Math.PI * 2)) / (Math.PI * 2)) * 360 + 360) % 360;
+    degCounter.textContent = deg + '°';
+
+    renderer.render(scene, camera);
+  }
+  tick();
+
+  /* ── Resize ── */
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+</script>
+</body>
+</html>
