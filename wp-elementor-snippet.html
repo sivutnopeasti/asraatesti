@@ -91,23 +91,11 @@
   tick();
 
   /* ── Etsi hero-kontaineri DOM:sta ──
-     Kävellään ylöspäin ja etsitään Elementorin uloin section/container
-     joka sisältää tämän widgetin. */
-  function findHeroEl(startEl) {
-    var cur  = startEl.parentElement;
-    var best = null;
-    while (cur && cur !== document.body) {
-      if (cur.matches && cur.matches(
-          '.e-con[data-element_type="container"], .elementor-section, section'
-      )) {
-        best = cur;   /* jatka ylöspäin – haetaan uloin */
-      }
-      cur = cur.parentElement;
-    }
-    return best || startEl.parentElement;
-  }
-
-  var heroEl = findHeroEl(wrap);
+     closest() palauttaa LÄHIMMÄN matchaavan ancestorin = juuri hero-osio,
+     ei sivun ylätason wrapper. */
+  var heroEl = wrap.closest(
+    '.e-con[data-element_type="container"], .elementor-section, section'
+  ) || wrap.parentElement;
 
   /* ── IntersectionObserver koko hero-osiolle ──
      Kun hero poistuu näkyvistä → piilotetaan kanvas ja nollataan kulma.
