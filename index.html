@@ -880,8 +880,7 @@
   function toRad(d) { return d * Math.PI / 180; }
   function toDeg(r) { return Math.round(r * 180 / Math.PI); }
 
-  function tick() {
-    requestAnimationFrame(tick);
+  function tick() {    requestAnimationFrame(tick);
 
     var startRad = toRad(cfg.startDeg);
     var endRad   = toRad(cfg.endDeg);
@@ -916,11 +915,12 @@
   });
 
   /* ── Range bar visual ── */
-  var angleNowEl   = document.getElementById('angle-now');
-  var barFillEl    = document.getElementById('range-bar-fill');
-  var barDotEl     = document.getElementById('range-bar-dot');
+  var angleNowEl = document.getElementById('angle-now');
+  var barFillEl  = document.getElementById('range-bar-fill');
+  var barDotEl   = document.getElementById('range-bar-dot');
 
   function updateRangeBar(startRad, endRad) {
+    if (!barFillEl || !barDotEl || !angleNowEl) return;
     var total = 360;
     var s = cfg.startDeg / total * 100;
     var e = cfg.endDeg   / total * 100;
