@@ -1,0 +1,87 @@
+<!-- =====================================================
+  ASUNTORÄÄTÄLI – 360° PANORAAMA HERO BACKGROUND
+  Liitä tämä KOKO sisältö Elementor Custom HTML -widgettiin
+  ===================================================== -->
+
+<style>
+#asra-pano-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#asra-pano-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>
+
+<div id="asra-pano-wrap">
+  <canvas id="asra-pano-canvas"></canvas>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+(function () {
+  var wrap   = document.getElementById('asra-pano-wrap');
+  var canvas = document.getElementById('asra-pano-canvas');
+
+  var scene    = new THREE.Scene();
+  var camera   = new THREE.PerspectiveCamera(75, 2, 0.1, 1000);
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  function resize() {
+    var w = wrap.offsetWidth  || window.innerWidth;
+    var h = wrap.offsetHeight || window.innerHeight;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  /* Inside-out sphere */
+  var geo = new THREE.SphereGeometry(500, 64, 32);
+  geo.scale(-1, 1, 1);
+
+  var sphere = null;
+  var loader = new THREE.TextureLoader();
+
+  /* Kuva haetaan suoraan WP:n mediasta – sama domain, ei CORS-ongelmaa */
+  loader.load(
+    'https://asuntoraatali.fi/wp-content/uploads/2026/06/spherical-scaled.jpg',
+    function (tex) {
+      tex.minFilter = tex.magFilter = THREE.LinearFilter;
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      sphere = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex }));
+      sphere.rotation.y = 226 * Math.PI / 180;
+      scene.add(sphere);
+    }
+  );
+
+  camera.position.set(0, 0, 0.01);
+
+  /* Auto-rotation + scroll boost */
+  var currentAngle   = 226 * Math.PI / 180;
+  var scrollVelocity = 0;
+  var lastScrollY    = window.scrollY;
+
+  window.addEventListener('scroll', function () {
+    var dy = window.scrollY - lastScrollY;
+    lastScrollY = window.scrollY;
+    scrollVelocity += dy * 0.00044;
+  });
+
+  function tick() {
+    requestAnimationFrame(tick);
+    currentAngle   += 0.00028 + scrollVelocity;
+    scrollVelocity *= 0.86;
+    if (sphere) sphere.rotation.y = currentAngle;
+    renderer.render(scene, camera);
+  }
+  tick();
+})();
+</script>
