@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Asuntoraatali – 360° Panoraama</title>
+  <title>Asuntoraatali - 360 Panoraama</title>
   <style>
     :root {
       --blue: #1a56db;
@@ -19,7 +19,7 @@
       overflow-x: hidden;
     }
 
-    /* ── Loading screen ── */
+    /* Loading screen */
     #loading {
       position: fixed;
       inset: 0;
@@ -61,12 +61,10 @@
       font-size: 0.82rem;
     }
 
-    /* ══════════════════════════════════════
-       HERO – sticky scroll-pinned panorama
-    ══════════════════════════════════════ */
+    /* HERO - sticky scroll-pinned panorama */
     .hero {
       position: relative;
-      height: 450vh; /* tall scroll driver */
+      height: 450vh;
     }
 
     .hero-sticky {
@@ -82,7 +80,6 @@
       height: 100%;
     }
 
-    /* ── Top progress bar ── */
     #progress {
       position: absolute;
       top: 0;
@@ -93,7 +90,6 @@
       z-index: 50;
     }
 
-    /* ── Top bar ── */
     .top-bar {
       position: absolute;
       top: 0;
@@ -130,7 +126,6 @@
       justify-content: center;
     }
 
-    /* ── Degree counter ── */
     #deg-counter {
       position: absolute;
       top: 22px;
@@ -148,7 +143,6 @@
       border: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* ── Bottom panel ── */
     .bottom-panel {
       position: absolute;
       bottom: 0;
@@ -199,7 +193,6 @@
       letter-spacing: 0.6px;
     }
 
-    /* ── Scroll hint ── */
     #scroll-hint {
       position: absolute;
       bottom: 160px;
@@ -238,7 +231,6 @@
       100% { transform: translateX(-50%) translateY(14px); opacity: 0; }
     }
 
-    /* ── Rotation track (right side) ── */
     .rot-track-wrap {
       position: absolute;
       right: 24px;
@@ -276,9 +268,7 @@
       transition: top 0.08s;
     }
 
-    /* ══════════════════════════════════════
-       CONTENT below hero
-    ══════════════════════════════════════ */
+    /* Content below hero */
     .page-content {
       background: var(--dark);
       padding: 80px 40px;
@@ -306,48 +296,41 @@
       font-weight: 700;
       font-size: 1rem;
       text-decoration: none;
-      transition: opacity 0.2s;
     }
-    .cta-btn:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
 
-<!-- Loading screen -->
 <div id="loading">
   <div class="loading-logo">Asunto<span>raatali</span></div>
   <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
-  <div class="loading-label" id="loading-label">Ladataan panoraamaa…</div>
+  <div class="loading-label" id="loading-label">Ladataan...</div>
 </div>
 
-<!-- ══ HERO ══ -->
 <section class="hero" id="hero">
   <div class="hero-sticky">
-
-    <!-- Canvas fills sticky container -->
     <canvas id="panorama-canvas"></canvas>
 
-    <!-- UI overlaid on top of canvas -->
     <div id="progress"></div>
 
     <div class="top-bar">
       <a class="logo" href="#">Asunto<span>raatali</span></a>
-      <div class="badge-360">360°</div>
+      <div class="badge-360">360</div>
     </div>
 
-    <div id="deg-counter">221°</div>
+    <div id="deg-counter">221</div>
 
     <div class="bottom-panel">
-      <div class="chip">360° Virtuaaliesittely</div>
+      <div class="chip">360 Virtuaaliesittely</div>
       <div class="prop-title">Moderni keittiö</div>
       <div class="prop-sub">Scrollaa kierrellä tilaa ympäri</div>
       <div class="stats">
         <div>
-          <div class="stat-val">360°</div>
+          <div class="stat-val">360</div>
           <div class="stat-lbl">Panoraama</div>
         </div>
         <div>
-          <div class="stat-val">4K</div>
+          <div class="stat-val">8K</div>
           <div class="stat-lbl">Resoluutio</div>
         </div>
         <div>
@@ -363,133 +346,174 @@
     </div>
 
     <div class="rot-track-wrap">
-      <div class="rot-label">kierrä</div>
+      <div class="rot-label">kierra</div>
       <div class="rot-track"><div id="rot-thumb"></div></div>
     </div>
-
-  </div><!-- /.hero-sticky -->
+  </div>
 </section>
 
-<!-- ══ CONTENT BELOW HERO ══ -->
 <section style="background: var(--dark); padding: 0 0 80px;">
   <div class="page-content">
-    <h2>Tervetuloa virtuaalikierrokselle</h2>
+    <h2>Tervetuloa virtuaaliesittelyyn</h2>
     <p>
-      Tämä 360°-panoraama on renderöity Asuntoraatalin kohteesta. Scrollaamalla ylöspäin
-      pääset pyörittämään tilan ympäri ja tutustumaan kohteeseen ennen paikan päälle tuloa.
-    </p>
-    <p>
-      Ominaisuus integroidaan asuntoraatali.fi-sivulle Elementor Custom HTML -widgetinä
-      tai shortcoden avulla.
+      Tama 360-panoraama on renderöity Asuntoraatalin kohteesta. Scrollaamalla
+      pyöritataan tila ympari ja tutustutaan kohteeseen ennen paikan paalle tuloa.
     </p>
     <a class="cta-btn" href="https://asuntoraatali.fi" target="_blank">
-      Katso kaikki kohteet →
+      Katso kaikki kohteet
     </a>
   </div>
 </section>
 
-<!-- Three.js r134 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
-  /* ── Config ──────────────────────────────────────────────── */
-  const IMAGE_URL   = 'spherical.jpg';
-  const START_DEG   = 221;                               // starting camera angle in degrees
-  const START_RAD   = START_DEG * (Math.PI / 180);
-  const ROTATIONS   = 0.45;                              // total turns over full hero scroll (slow)
-  const LERP        = 0.03;                              // smoothing (lower = slower/smoother)
-  const THUMB_MAX   = 88;                                // px – track range for thumb
+  /* ── Config ── */
+  var IMAGE_LO   = 'panorama.png';
+  var IMAGE_HI   = 'https://i.ibb.co/8443ZvHh/spherical.jpg';
+  var START_DEG  = 221;
+  var START_RAD  = START_DEG * (Math.PI / 180);
+  var ROTATIONS  = 0.45;
+  var LERP       = 0.03;
+  var THUMB_MAX  = 88;
 
-  /* ── Three.js setup ─────────────────────────────────────── */
-  const canvas   = document.getElementById('panorama-canvas');
-  const scene    = new THREE.Scene();
-  const camera   = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  /* ── Three.js ── */
+  var canvas   = document.getElementById('panorama-canvas');
+  var scene    = new THREE.Scene();
+  var camera   = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(innerWidth, innerHeight);
 
-  /* Inside-out sphere */
-  const geo = new THREE.SphereGeometry(500, 64, 32);
+  var geo = new THREE.SphereGeometry(500, 64, 32);
   geo.scale(-1, 1, 1);
 
-  /* ── Load texture ───────────────────────────────────────── */
-  const barFill    = document.getElementById('bar-fill');
-  const loadLabel  = document.getElementById('loading-label');
-  const loadScreen = document.getElementById('loading');
+  var barFill    = document.getElementById('bar-fill');
+  var loadLabel  = document.getElementById('loading-label');
+  var loadScreen = document.getElementById('loading');
 
-  let sphere = null;
+  var sphere   = null;
+  var loader   = new THREE.TextureLoader();
+  var maxAniso = renderer.capabilities.getMaxAnisotropy();
 
-  new THREE.TextureLoader().load(
-    IMAGE_URL,
-    (tex) => {
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  function applyTex(tex) {
+    tex.minFilter = THREE.LinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+    tex.anisotropy = maxAniso;
+    return tex;
+  }
+
+  function showScene(tex) {
+    if (!sphere) {
       sphere = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex }));
       sphere.rotation.y = START_RAD;
       scene.add(sphere);
+    } else {
+      var old = sphere.material.map;
+      sphere.material.map = tex;
+      sphere.material.needsUpdate = true;
+      if (old) old.dispose();
+    }
+  }
 
-      barFill.style.width = '100%';
-      loadLabel.textContent = 'Valmis!';
-      setTimeout(() => {
-        loadScreen.classList.add('fade-out');
-        setTimeout(() => loadScreen.style.display = 'none', 650);
-      }, 280);
+  function hideLoading() {
+    barFill.style.width = '100%';
+    loadLabel.textContent = 'Valmis!';
+    setTimeout(function() {
+      loadScreen.classList.add('fade-out');
+      setTimeout(function() { loadScreen.style.display = 'none'; }, 650);
+    }, 200);
+  }
+
+  /* ── Stage 2: 8K loads silently in background ── */
+  function loadHiRes(showProgress) {
+    var hiLabel = document.createElement('div');
+    hiLabel.style.cssText =
+      'position:fixed;bottom:12px;right:16px;z-index:60;' +
+      'color:rgba(255,255,255,0.45);font-size:0.7rem;font-family:inherit;' +
+      'background:rgba(0,0,0,0.4);padding:3px 10px;border-radius:12px;transition:opacity 0.5s;';
+    hiLabel.textContent = '8K ladataan...';
+    document.body.appendChild(hiLabel);
+
+    loader.load(
+      IMAGE_HI,
+      function(tex) {
+        showScene(applyTex(tex));
+        if (showProgress) hideLoading();
+        hiLabel.textContent = '8K valmis';
+        setTimeout(function() {
+          hiLabel.style.opacity = '0';
+          setTimeout(function() { hiLabel.remove(); }, 500);
+        }, 1500);
+      },
+      function(e) {
+        if (e.total > 0) {
+          var p = Math.round(e.loaded / e.total * 100);
+          hiLabel.textContent = '8K ladataan... ' + p + '%';
+          if (showProgress) {
+            barFill.style.width = p + '%';
+            loadLabel.textContent = 'Ladataan 8K... ' + p + '%';
+          }
+        }
+      },
+      function() { hiLabel.textContent = '8K virhe'; }
+    );
+  }
+
+  /* ── Stage 1: low-res placeholder -> opens in seconds ── */
+  loader.load(
+    IMAGE_LO,
+    function(tex) {
+      showScene(applyTex(tex));
+      hideLoading();
+      loadHiRes(false);
     },
-    (e) => {
-      if (e.total > 0) {
-        const p = Math.round(e.loaded / e.total * 100);
-        barFill.style.width   = p + '%';
-        loadLabel.textContent = `Ladataan… ${p}%`;
-      }
-    },
-    () => { loadLabel.textContent = 'Virhe – tarkista kuvan URL'; }
+    null,
+    function() {
+      /* low-res not available (e.g. CORS) -> load 8K directly with progress */
+      loadHiRes(true);
+    }
   );
 
   camera.position.set(0, 0, 0.01);
 
-  /* ── Scroll → rotation (relative to hero section) ───────── */
-  let targetY  = START_RAD;
-  let currentY = START_RAD;
+  /* ── Scroll -> rotation ── */
+  var targetY  = START_RAD;
+  var currentY = START_RAD;
 
-  const heroEl     = document.getElementById('hero');
-  const progressEl = document.getElementById('progress');
-  const rotThumb   = document.getElementById('rot-thumb');
-  const scrollHint = document.getElementById('scroll-hint');
-  const degCounter = document.getElementById('deg-counter');
+  var progressEl = document.getElementById('progress');
+  var rotThumb   = document.getElementById('rot-thumb');
+  var scrollHint = document.getElementById('scroll-hint');
+  var degCounter = document.getElementById('deg-counter');
+  var heroEl     = document.getElementById('hero');
 
-  window.addEventListener('scroll', () => {
-    const heroTop    = heroEl.offsetTop;
-    const heroDriver = heroEl.offsetHeight - innerHeight;   // scrollable range inside hero
-    const scrolled   = Math.max(0, window.scrollY - heroTop);
-    const pct        = Math.min(scrolled / heroDriver, 1);
+  window.addEventListener('scroll', function() {
+    var heroDriver = heroEl.offsetHeight - innerHeight;
+    var scrolled   = Math.max(0, window.scrollY - heroEl.offsetTop);
+    var pct        = Math.min(scrolled / heroDriver, 1);
 
     targetY = START_RAD + pct * Math.PI * 2 * ROTATIONS;
 
     progressEl.style.width = (pct * 100) + '%';
     rotThumb.style.top     = (pct * THUMB_MAX) + 'px';
-
     scrollHint.style.opacity = scrolled > 60 ? '0' : '1';
   });
 
-  /* ── Animation loop ─────────────────────────────────────── */
+  /* ── Animation loop ── */
   function tick() {
     requestAnimationFrame(tick);
-
     currentY += (targetY - currentY) * LERP;
-
     if (sphere) sphere.rotation.y = currentY;
 
-    /* Degree counter – normalise to 0–360 */
-    const raw = (currentY % (Math.PI * 2));
-    const deg = Math.round(((raw < 0 ? raw + Math.PI * 2 : raw) / (Math.PI * 2)) * 360);
-    degCounter.textContent = deg + '°';
+    var raw = currentY % (Math.PI * 2);
+    if (raw < 0) raw += Math.PI * 2;
+    var deg = Math.round((raw / (Math.PI * 2)) * 360);
+    degCounter.textContent = deg + '\u00b0';
 
     renderer.render(scene, camera);
   }
   tick();
 
-  /* ── Resize ─────────────────────────────────────────────── */
-  window.addEventListener('resize', () => {
+  window.addEventListener('resize', function() {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
