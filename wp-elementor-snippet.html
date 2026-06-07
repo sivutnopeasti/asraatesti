@@ -4,8 +4,6 @@
   ===================================================== -->
 
 <style>
-/* Kanvas on fixed koko ruudun taustalla – IntersectionObserver
-   piilottaa sen heti kun hero ei ole enää näkyvissä */
 #asra-pano-wrap {
   position: fixed;
   top: 0; left: 0;
@@ -13,40 +11,35 @@
   height: 100vh;
   z-index: 0;
   pointer-events: none;
-  transition: opacity 0.4s;
-}
-#asra-pano-wrap.asra-hidden {
-  opacity: 0;
-  pointer-events: none;
+  display: none;        /* JS näyttää/piilottaa – ei opacity-siirtymää */
 }
 #asra-pano-canvas {
   display: block;
   width: 100%;
   height: 100%;
 }
-/* Sentinel – näkymätön div, jonka näkyvyyttä seurataan */
-#asra-sentinel {
-  position: absolute;
-  bottom: 0; left: 0;
-  width: 1px; height: 1px;
-  pointer-events: none;
-}
 </style>
 
-<!-- Sentinel seuraa hero-osion loppua -->
-<div id="asra-sentinel"></div>
-
-<!-- Fixed panorama canvas -->
-<div id="asra-pano-wrap" class="asra-hidden">
+<div id="asra-pano-wrap">
   <canvas id="asra-pano-canvas"></canvas>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
 (function () {
-  var wrap     = document.getElementById('asra-pano-wrap');
-  var canvas   = document.getElementById('asra-pano-canvas');
-  var sentinel = document.getElementById('asra-sentinel');
+  var wrap   = document.getElementById('asra-pano-wrap');
+  var canvas = document.getElementById('asra-pano-canvas');
+
+  /* ── Konfiguraatio ── */
+  var START_RAD   = 226 * Math.PI / 180;
+  var BASE_SPEED  = 0.00028;   /* automaattipyörintä */
+  var SCROLL_MULT = 0.00044;   /* scrollboosti */
+  var FRICTION    = 0.86;
+
+  var currentAngle   = START_RAD;
+  var scrollVelocity = 0;
+  var lastScrollY    = window.scrollY;
+  var heroVisible    = false;
 
   /* ── Three.js ── */
   var scene    = new THREE.Scene();
@@ -54,6 +47,7 @@
   var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
+  camera.position.set(0, 0, 0.01);
 
   window.addEventListener('resize', function () {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -66,54 +60,76 @@
   geo.scale(-1, 1, 1);
 
   var sphere = null;
-  var loader = new THREE.TextureLoader();
-
-  /* Kuva WP:n mediasta – sama domain, ei CORS */
-  loader.load(
+  new THREE.TextureLoader().load(
     'https://asuntoraatali.fi/wp-content/uploads/2026/06/spherical-scaled.jpg',
     function (tex) {
       tex.minFilter = tex.magFilter = THREE.LinearFilter;
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
       sphere = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex }));
-      sphere.rotation.y = 226 * Math.PI / 180;
+      sphere.rotation.y = currentAngle;
       scene.add(sphere);
     }
   );
 
-  camera.position.set(0, 0, 0.01);
-
-  /* ── Auto-rotation + scroll boost ── */
-  var currentAngle   = 226 * Math.PI / 180;
-  var scrollVelocity = 0;
-  var lastScrollY    = window.scrollY;
-
+  /* ── Scroll boosti (vain hero näkyvissä) ── */
   window.addEventListener('scroll', function () {
     var dy = window.scrollY - lastScrollY;
     lastScrollY = window.scrollY;
-    scrollVelocity += dy * 0.00044;
+    if (heroVisible) scrollVelocity += dy * SCROLL_MULT;
   });
 
+  /* ── Animaatiosilmukka ── */
   function tick() {
     requestAnimationFrame(tick);
-    currentAngle   += 0.00028 + scrollVelocity;
-    scrollVelocity *= 0.86;
+    if (heroVisible) {
+      currentAngle   += BASE_SPEED + scrollVelocity;
+      scrollVelocity *= FRICTION;
+    }
     if (sphere) sphere.rotation.y = currentAngle;
     renderer.render(scene, camera);
   }
   tick();
 
-  /* ── IntersectionObserver: näytä/piilota kun hero on näkyvissä ── */
+  /* ── Etsi hero-kontaineri DOM:sta ──
+     Kävellään ylöspäin ja etsitään Elementorin uloin section/container
+     joka sisältää tämän widgetin. */
+  function findHeroEl(startEl) {
+    var cur  = startEl.parentElement;
+    var best = null;
+    while (cur && cur !== document.body) {
+      if (cur.matches && cur.matches(
+          '.e-con[data-element_type="container"], .elementor-section, section'
+      )) {
+        best = cur;   /* jatka ylöspäin – haetaan uloin */
+      }
+      cur = cur.parentElement;
+    }
+    return best || startEl.parentElement;
+  }
+
+  var heroEl = findHeroEl(wrap);
+
+  /* ── IntersectionObserver koko hero-osiolle ──
+     Kun hero poistuu näkyvistä → piilotetaan kanvas ja nollataan kulma.
+     Kun hero palaa → näytetään kanvas ja aloitetaan lähtöasennosta. */
   var io = new IntersectionObserver(
     function (entries) {
       if (entries[0].isIntersecting) {
-        wrap.classList.remove('asra-hidden');
+        /* Hero tuli näkyviin: resetoi alkuasentoon */
+        currentAngle   = START_RAD;
+        scrollVelocity = 0;
+        lastScrollY    = window.scrollY;
+        heroVisible    = true;
+        wrap.style.display = 'block';
       } else {
-        wrap.classList.add('asra-hidden');
+        /* Hero poistui: piilotetaan kanvas */
+        heroVisible        = false;
+        wrap.style.display = 'none';
       }
     },
     { threshold: 0 }
   );
-  io.observe(sentinel);
+  io.observe(heroEl);
 
 })();
 </script>
