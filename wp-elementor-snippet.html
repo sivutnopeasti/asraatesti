@@ -39,6 +39,16 @@ header,
   position: relative !important;
   z-index: 1000 !important;
 }
+
+/* ── Sisältöosiot overlayn yläpuolelle ──
+   Hero on läpinäkyvä → panoraama näkyy siellä
+   Muut osiot omalla taustavärillään → peittävät overlayn ── */
+.elementor-section,
+.elementor-top-section,
+.e-con[data-element_type="container"] {
+  position: relative !important;
+  z-index: 2 !important;
+}
 </style>
 
 <!-- Panorama canvas -->
