@@ -392,7 +392,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
   /* ── Config ──────────────────────────────────────────────── */
-  const IMAGE_URL   = 'https://asuntoraatali.fi/wp-content/uploads/2026/06/spherical-scaled.jpg';
+  /* Local file for Vercel test – on WordPress use the WP media URL (same domain, no CORS) */
+  const IMAGE_URL   = 'panorama.png';
   const START_DEG   = 221;                               // starting camera angle in degrees
   const START_RAD   = START_DEG * (Math.PI / 180);
   const ROTATIONS   = 0.45;                              // total turns over full hero scroll (slow)
