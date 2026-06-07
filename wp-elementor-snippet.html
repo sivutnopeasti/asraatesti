@@ -1,9 +1,10 @@
 <!-- =====================================================
-  ASUNTORÄÄTÄLI – 360° PANORAAMA HERO BACKGROUND
+  ASUNTORÄÄTÄLI – 360° PANORAAMA KOKO SIVUN TAUSTANA
   Liitä tämä KOKO sisältö Elementor Custom HTML -widgettiin
   ===================================================== -->
 
 <style>
+/* ── Panoraamakanvas – koko ruutu, aina taustalla ── */
 #asra-pano-wrap {
   position: fixed;
   top: 0; left: 0;
@@ -11,35 +12,69 @@
   height: 100vh;
   z-index: 0;
   pointer-events: none;
-  display: none;        /* JS näyttää/piilottaa – ei opacity-siirtymää */
 }
 #asra-pano-canvas {
   display: block;
   width: 100%;
   height: 100%;
 }
+
+/* ── Tumma overlay – säädä viimeistä lukua (0–1):
+      0.3 = vaalea, 0.55 = tumma, 0.75 = hyvin tumma ── */
+#asra-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: rgba(5, 15, 35, 0.50);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+}
+
+/* ── Elementor-osiot läpinäkyviksi jotta panoraama näkyy ──
+   Jos haluat jonkin osion omalla taustavärillä, poista se täältä
+   ja aseta sen tausta Elementorissa suoraan. ── */
+.elementor-section,
+.elementor-top-section,
+.e-con[data-element_type="container"] {
+  background-color: transparent !important;
+  background-image: none !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+/* ── Header pysyy aina ylimpänä ── */
+#masthead,
+.site-header,
+header,
+.elementor-location-header {
+  position: relative !important;
+  z-index: 1000 !important;
+}
 </style>
 
+<!-- Panorama canvas -->
 <div id="asra-pano-wrap">
   <canvas id="asra-pano-canvas"></canvas>
 </div>
 
+<!-- Tumma overlay tekstien taustaksi -->
+<div id="asra-overlay"></div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
 (function () {
-  var wrap   = document.getElementById('asra-pano-wrap');
   var canvas = document.getElementById('asra-pano-canvas');
 
   /* ── Konfiguraatio ── */
   var START_RAD   = 226 * Math.PI / 180;
-  var BASE_SPEED  = 0.00028;   /* automaattipyörintä */
-  var SCROLL_MULT = 0.00044;   /* scrollboosti */
-  var FRICTION    = 0.86;
+  var BASE_SPEED  = 0.00018;   /* automaattipyörintä – hidas koko sivun ajan */
+  var SCROLL_MULT = 0.00030;   /* scroll lisää vauhtia */
+  var FRICTION    = 0.88;
 
   var currentAngle   = START_RAD;
   var scrollVelocity = 0;
   var lastScrollY    = window.scrollY;
-  var heroVisible    = false;
 
   /* ── Three.js ── */
   var scene    = new THREE.Scene();
@@ -71,53 +106,22 @@
     }
   );
 
-  /* ── Scroll boosti (vain hero näkyvissä) ── */
+  /* ── Scroll boosti ── */
   window.addEventListener('scroll', function () {
     var dy = window.scrollY - lastScrollY;
     lastScrollY = window.scrollY;
-    if (heroVisible) scrollVelocity += dy * SCROLL_MULT;
+    scrollVelocity += dy * SCROLL_MULT;
   });
 
-  /* ── Animaatiosilmukka ── */
+  /* ── Animaatiosilmukka – käy koko sivun ajan ── */
   function tick() {
     requestAnimationFrame(tick);
-    if (heroVisible) {
-      currentAngle   += BASE_SPEED + scrollVelocity;
-      scrollVelocity *= FRICTION;
-    }
+    currentAngle   += BASE_SPEED + scrollVelocity;
+    scrollVelocity *= FRICTION;
     if (sphere) sphere.rotation.y = currentAngle;
     renderer.render(scene, camera);
   }
   tick();
-
-  /* ── Etsi hero-kontaineri DOM:sta ──
-     closest() palauttaa LÄHIMMÄN matchaavan ancestorin = juuri hero-osio,
-     ei sivun ylätason wrapper. */
-  var heroEl = wrap.closest(
-    '.e-con[data-element_type="container"], .elementor-section, section'
-  ) || wrap.parentElement;
-
-  /* ── IntersectionObserver koko hero-osiolle ──
-     Kun hero poistuu näkyvistä → piilotetaan kanvas ja nollataan kulma.
-     Kun hero palaa → näytetään kanvas ja aloitetaan lähtöasennosta. */
-  var io = new IntersectionObserver(
-    function (entries) {
-      if (entries[0].isIntersecting) {
-        /* Hero tuli näkyviin: resetoi alkuasentoon */
-        currentAngle   = START_RAD;
-        scrollVelocity = 0;
-        lastScrollY    = window.scrollY;
-        heroVisible    = true;
-        wrap.style.display = 'block';
-      } else {
-        /* Hero poistui: piilotetaan kanvas */
-        heroVisible        = false;
-        wrap.style.display = 'none';
-      }
-    },
-    { threshold: 0 }
-  );
-  io.observe(heroEl);
 
 })();
 </script>
