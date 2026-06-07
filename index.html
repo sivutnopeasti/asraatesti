@@ -728,19 +728,19 @@
     <div class="ctrl-row">
       <div class="ctrl-label">
         <span>Automaattinopeus</span>
-        <span class="ctrl-val" id="val-base">0.00028</span>
+        <span class="ctrl-val" id="val-base">0.00000</span>
       </div>
       <input type="range" class="ctrl-slider" id="sl-base"
-             min="0" max="0.0012" step="0.00002" value="0.00028">
+             min="0" max="0.0012" step="0.00002" value="0.00000">
     </div>
 
     <div class="ctrl-row">
       <div class="ctrl-label">
         <span>Scroll-boosti</span>
-        <span class="ctrl-val" id="val-scroll">0.00044</span>
+        <span class="ctrl-val" id="val-scroll">0.00004</span>
       </div>
       <input type="range" class="ctrl-slider" id="sl-scroll"
-             min="0" max="0.002" step="0.00002" value="0.00044">
+             min="0" max="0.002" step="0.00002" value="0.00004">
     </div>
 
     <hr class="ctrl-divider">
@@ -749,19 +749,19 @@
     <div class="ctrl-row">
       <div class="ctrl-label">
         <span>Aloituskulma</span>
-        <span class="ctrl-val" id="val-start">226°</span>
+        <span class="ctrl-val" id="val-start">188°</span>
       </div>
       <input type="range" class="ctrl-slider" id="sl-start"
-             min="0" max="360" step="1" value="226">
+             min="0" max="360" step="1" value="188">
     </div>
 
     <div class="ctrl-row">
       <div class="ctrl-label">
         <span>Loppukulma</span>
-        <span class="ctrl-val" id="val-end">310°</span>
+        <span class="ctrl-val" id="val-end">326°</span>
       </div>
       <input type="range" class="ctrl-slider" id="sl-end"
-             min="0" max="360" step="1" value="310">
+             min="0" max="360" step="1" value="326">
     </div>
 
     <!-- Visuaalinen haarukka -->
@@ -784,11 +784,11 @@
 
   /* ── Config (synkronoitu liukusäätimiin) ── */
   var cfg = {
-    baseSpeed:  0.00028,
-    scrollMult: 0.00044,
+    baseSpeed:  0.00000,
+    scrollMult: 0.00004,
     friction:   0.86,
-    startDeg:   226,
-    endDeg:     310
+    startDeg:   188,
+    endDeg:     326
   };
 
   /* ── Three.js ── */
@@ -861,8 +861,7 @@
   }
 
   /* ── Animation state ── */
-  var currentAngle   = cfg.startDeg * Math.PI / 180;
-  var direction      = 1;   // 1 = forward, -1 = backward (ping-pong)
+  var currentAngle   = cfg.startDeg * Math.PI / 180;  var direction      = 1;   // 1 = forward, -1 = backward (ping-pong)
   var scrollVelocity = 0;
   var lastScrollY    = 0;
 
