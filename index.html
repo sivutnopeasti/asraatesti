@@ -98,24 +98,34 @@
     .site-header.scrolled .header-cta { background: var(--navy); }
 
     /* ════════════════════════════════════════
-       HERO – sticky 360 panorama
+       HERO – fixed background, normal scroll
     ════════════════════════════════════════ */
-    .hero-section {
-      position: relative;
-      height: 280vh; /* scroll driver */
+
+    /* Canvas is always fixed behind everything.
+       Content sections cover it with solid bg as user scrolls. */
+    #panorama-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
     }
 
-    .hero-sticky {
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    /* panorama canvas fills hero */
     #panorama-canvas {
       display: block;
       width: 100%;
+      height: 100%;
+    }
+
+    /* Hero section – normal document flow, transparent so canvas shows through */
+    .hero-section {
+      position: relative;
+      z-index: 1;
+      height: 130vh;   /* taller than viewport */
+      background: transparent;
+    }
+
+    /* Dummy inner just for structure */
+    .hero-sticky {
+      position: relative;
       height: 100%;
     }
 
@@ -258,6 +268,8 @@
     ════════════════════════════════════════ */
     .section {
       padding: 80px 24px;
+      position: relative;
+      z-index: 2; /* covers the fixed canvas */
     }
     .section-inner {
       max-width: 1100px;
@@ -447,6 +459,8 @@
       background: var(--navy);
       color: rgba(255,255,255,0.8);
       padding: 60px 24px 0;
+      position: relative;
+      z-index: 2;
     }
     .footer-inner {
       max-width: 1100px;
@@ -577,12 +591,14 @@
   </div>
 </header>
 
+<!-- Fixed panorama background (always behind everything) -->
+<div id="panorama-wrap">
+  <canvas id="panorama-canvas"></canvas>
+</div>
+
 <!-- ════════ HERO ════════ -->
 <section class="hero-section" id="hero-section">
   <div class="hero-sticky" id="hero-sticky">
-
-    <!-- Three.js canvas -->
-    <canvas id="panorama-canvas"></canvas>
 
     <!-- Dark overlay -->
     <div class="hero-overlay"></div>
@@ -746,11 +762,11 @@
   /* ── Config ──────────────────────────────────── */
   var IMAGE_LO  = 'panorama.png';
   var IMAGE_HI  = 'https://i.ibb.co/8443ZvHh/spherical.jpg';
-  var START_DEG = 226;          // panorama start angle
-  var END_DEG   = 290;          // panorama end angle  (64° range)
+  var START_DEG = 226;    // panorama start angle
+  var END_DEG   = 310;    // panorama end angle – wider range = faster feel (84°)
   var START_RAD = START_DEG * Math.PI / 180;
   var END_RAD   = END_DEG   * Math.PI / 180;
-  var LERP      = 0.04;
+  var LERP      = 0.06;   // higher = snappier response
 
   /* ── Renderer ────────────────────────────────── */
   var canvas   = document.getElementById('panorama-canvas');
@@ -841,7 +857,7 @@
 
   camera.position.set(0, 0, 0.01);
 
-  /* ── Scroll → rotation (226° to 290°) ───────── */
+  /* ── Scroll → rotation (226° to 310°) ───────── */
   var targetY  = START_RAD;
   var currentY = START_RAD;
 
@@ -850,17 +866,17 @@
   var siteHeader  = document.getElementById('site-header');
 
   window.addEventListener('scroll', function() {
-    var heroDriver = heroSection.offsetHeight - innerHeight;
-    var scrolled   = Math.max(0, window.scrollY - heroSection.offsetTop);
-    var pct        = Math.min(scrolled / heroDriver, 1);
+    var sy         = window.scrollY;
+    var heroH      = heroSection.offsetHeight; /* 130vh */
+    /* rotation spans the full hero height (no -innerHeight offset) so
+       it starts rotating immediately and finishes when hero top leaves viewport */
+    var pct        = Math.min(sy / heroH, 1);
 
-    /* interpolate from START_RAD to END_RAD */
     targetY = START_RAD + pct * (END_RAD - START_RAD);
 
-    scrollHint.style.opacity = scrolled > 80 ? '0' : '1';
+    scrollHint.style.opacity = sy > 60 ? '0' : '1';
 
-    /* header scroll class */
-    if (window.scrollY > 60) {
+    if (sy > 40) {
       siteHeader.classList.add('scrolled');
     } else {
       siteHeader.classList.remove('scrolled');
