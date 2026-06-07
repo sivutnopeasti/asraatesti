@@ -229,27 +229,27 @@
       z-index: 2;
     }
     .section-inner { max-width: 1100px; margin: 0 auto; }
-    /* Valkoinen osio – lähes kiinteä mutta panoraama pilkistää */
-    .section--white { background: rgba(255, 255, 255, 0.90); }
-    .section--light { background: rgba(237, 240, 245, 0.90); }
+    /* Osiot läpinäkyvät – panoraama näkyy läpi kuten WP-sivulla */
+    .section--white { background: rgba(255, 255, 255, 0.07); }
+    .section--light { background: rgba(255, 255, 255, 0.04); }
 
     .section-tag {
       font-size: 0.75rem;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1.2px;
-      color: var(--navy);
+      color: #5b9cf6;
       margin-bottom: 8px;
     }
     .section-h2 {
       font-size: clamp(1.4rem, 2.5vw, 2rem);
       font-weight: 800;
-      color: var(--navy);
+      color: var(--white);
       line-height: 1.25;
       margin-bottom: 16px;
     }
     .section-p {
-      color: var(--muted);
+      color: rgba(255,255,255,0.80);
       line-height: 1.75;
       font-size: 0.97rem;
       margin-bottom: 16px;
@@ -307,11 +307,11 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
     .partner-row { display: flex; align-items: center; gap: 10px; margin-top: 20px; }
-    .partner-label { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+    .partner-label { font-size: 0.82rem; color: rgba(255,255,255,0.65); font-weight: 600; }
     .partner-logo {
       font-size: 1rem; font-weight: 900; font-style: italic;
-      color: var(--navy); letter-spacing: -1px;
-      border-bottom: 2px solid var(--navy); padding-bottom: 1px;
+      color: var(--white); letter-spacing: -1px;
+      border-bottom: 2px solid rgba(255,255,255,0.6); padding-bottom: 1px;
     }
 
     /* ════════════════════════════════════════
@@ -343,23 +343,23 @@
     }
     @media (max-width: 600px) { .steps-grid { grid-template-columns: 1fr; } }
     .step-card {
-      background: rgba(255,255,255,0.92);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
       border-radius: 12px;
       padding: 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     }
     .step-icon {
       width: 44px; height: 44px;
-      background: #e8edfa;
+      background: rgba(91,156,246,0.2);
       border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 14px;
     }
-    .step-icon svg { width: 22px; height: 22px; fill: var(--navy); }
-    .step-h3 { font-size: 0.97rem; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
-    .step-p  { font-size: 0.88rem; color: var(--muted); line-height: 1.65; }
+    .step-icon svg { width: 22px; height: 22px; fill: #5b9cf6; }
+    .step-h3 { font-size: 0.97rem; font-weight: 800; color: var(--white); margin-bottom: 8px; }
+    .step-p  { font-size: 0.88rem; color: rgba(255,255,255,0.72); line-height: 1.65; }
 
     /* ════════════════════════════════════════
        FOOTER
