@@ -3,68 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Asuntoraatali - 360 Panoraama</title>
+  <title>Asuntoräätäli – Valmiit remonttisuunnitelmat ja tarjoukset</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900;1,6..12,400&display=swap" rel="stylesheet">
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --blue: #1a56db;
-      --dark: #0c111d;
+      --navy:   #09246c;
+      --navy2:  #000046;
+      --gold:   #c9a227;
+      --gold2:  #b8911e;
+      --text:   #1f2937;
+      --muted:  #4b5563;
+      --light:  #f3f4f6;
+      --white:  #ffffff;
+      --border: #e5e7eb;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: auto; }
+    html { scroll-behavior: smooth; }
 
     body {
-      background: var(--dark);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Nunito Sans', 'Segoe UI', sans-serif;
+      color: var(--text);
+      background: var(--white);
       overflow-x: hidden;
     }
 
-    /* Loading screen */
-    #loading {
+    a { text-decoration: none; color: inherit; }
+
+    /* ════════════════════════════════════════
+       HEADER
+    ════════════════════════════════════════ */
+    .site-header {
       position: fixed;
-      inset: 0;
-      background: var(--dark);
-      z-index: 200;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      transition: background 0.3s, box-shadow 0.3s;
+      background: transparent;
+    }
+    .site-header.scrolled {
+      background: var(--white);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 70px;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 18px;
-      transition: opacity 0.6s ease;
+      gap: 32px;
     }
-    #loading.fade-out { opacity: 0; pointer-events: none; }
 
-    .loading-logo {
-      color: #fff;
-      font-size: 1.9rem;
+    .site-logo {
+      font-size: 1.3rem;
       font-weight: 800;
-      letter-spacing: -0.5px;
+      color: var(--white);
+      letter-spacing: -0.3px;
+      flex-shrink: 0;
+      transition: color 0.3s;
     }
-    .loading-logo span { color: var(--blue); }
+    .site-logo em { color: #5b9cf6; font-style: normal; }
+    .site-header.scrolled .site-logo { color: var(--navy); }
+    .site-header.scrolled .site-logo em { color: var(--navy); }
 
-    .bar-track {
-      width: 220px;
-      height: 4px;
-      background: rgba(255,255,255,0.12);
-      border-radius: 4px;
-      overflow: hidden;
+    .site-nav {
+      display: flex;
+      gap: 28px;
+      flex: 1;
+      justify-content: center;
     }
-    .bar-fill {
-      height: 100%;
-      background: var(--blue);
-      border-radius: 4px;
-      width: 0%;
-      transition: width 0.25s;
+    .site-nav a {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      transition: color 0.2s;
     }
-    .loading-label {
-      color: rgba(255,255,255,0.45);
-      font-size: 0.82rem;
-    }
+    .site-nav a:hover { color: var(--white); }
+    .site-header.scrolled .site-nav a { color: var(--text); }
+    .site-header.scrolled .site-nav a:hover { color: var(--navy); }
 
-    /* HERO - sticky scroll-pinned panorama */
-    .hero {
+    .header-cta {
+      background: var(--navy);
+      color: var(--white) !important;
+      padding: 9px 20px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .header-cta:hover { background: var(--navy2); }
+    .site-header.scrolled .header-cta { background: var(--navy); }
+
+    /* ════════════════════════════════════════
+       HERO – sticky 360 panorama
+    ════════════════════════════════════════ */
+    .hero-section {
       position: relative;
-      height: 450vh;
+      height: 280vh; /* scroll driver */
     }
 
     .hero-sticky {
@@ -74,309 +112,647 @@
       overflow: hidden;
     }
 
+    /* panorama canvas fills hero */
     #panorama-canvas {
       display: block;
       width: 100%;
       height: 100%;
     }
 
-    #progress {
+    /* dark overlay */
+    .hero-overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      height: 3px;
-      width: 0%;
-      background: var(--blue);
-      z-index: 50;
+      inset: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(9, 36, 108, 0.55) 0%,
+        rgba(0, 0, 0, 0.35) 100%
+      );
+      pointer-events: none;
     }
 
-    .top-bar {
+    /* hero content */
+    .hero-content {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 40;
-      padding: 18px 28px;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 48px;
+      max-width: 700px;
+      padding-top: 70px;
+    }
+
+    .hero-stars {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%);
+      gap: 8px;
+      margin-bottom: 12px;
     }
-    .logo {
-      color: #fff;
-      font-size: 1.3rem;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-      text-decoration: none;
+    .star-row { display: flex; gap: 2px; }
+    .star {
+      width: 18px; height: 18px;
+      color: #f59e0b;
+      fill: #f59e0b;
     }
-    .logo span { color: var(--blue); }
+    .hero-stars-label {
+      color: rgba(255,255,255,0.9);
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
 
-    .badge-360 {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      border: 2px solid rgba(255,255,255,0.35);
-      background: rgba(0,0,0,0.35);
-      backdrop-filter: blur(6px);
-      color: #fff;
-      font-size: 0.85rem;
+    .hero-h1 {
+      color: var(--white);
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-sub {
+      color: rgba(255,255,255,0.85);
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+      max-width: 480px;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(9, 36, 108, 0.75);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: var(--white);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.82rem;
       font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    .hero-btn {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--white);
+      padding: 13px 28px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      transition: background 0.2s;
+      align-self: flex-start;
+    }
+    .hero-btn:hover { background: var(--gold2); }
+
+    /* scroll indicator in hero */
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: rgba(255,255,255,0.6);
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+    .scroll-mouse {
+      width: 20px; height: 32px;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 10px;
+      position: relative;
+    }
+    .scroll-dot {
+      position: absolute;
+      top: 4px; left: 50%;
+      transform: translateX(-50%);
+      width: 3px; height: 6px;
+      background: rgba(255,255,255,0.8);
+      border-radius: 2px;
+      animation: scrollDot 1.5s ease-in-out infinite;
+    }
+    @keyframes scrollDot {
+      0%   { transform: translateX(-50%) translateY(0);    opacity: 1; }
+      100% { transform: translateX(-50%) translateY(12px); opacity: 0; }
+    }
+
+    /* 8K status badge */
+    #hires-label {
+      position: fixed;
+      bottom: 12px; right: 16px;
+      z-index: 60;
+      color: rgba(255,255,255,0.45);
+      font-size: 0.7rem;
+      font-family: inherit;
+      background: rgba(0,0,0,0.4);
+      padding: 3px 10px;
+      border-radius: 12px;
+      transition: opacity 0.5s;
+      display: none;
+    }
+
+    /* ════════════════════════════════════════
+       SECTION COMMONS
+    ════════════════════════════════════════ */
+    .section {
+      padding: 80px 24px;
+    }
+    .section-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-inner--narrow {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .section--light { background: var(--light); }
+    .section--white { background: var(--white); }
+
+    .section-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+    .section-h2 {
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.25;
+      margin-bottom: 16px;
+    }
+    .section-p {
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 0.97rem;
+      margin-bottom: 16px;
+    }
+
+    /* ════════════════════════════════════════
+       BEFORE / AFTER SLIDER
+    ════════════════════════════════════════ */
+    .ba-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .ba-wrap { grid-template-columns: 1fr; gap: 32px; }
+    }
+
+    .ba-slider {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      overflow: hidden;
+      cursor: col-resize;
+      user-select: none;
+      border-radius: 12px;
+      background: #000;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    }
+    .ba-img-after, .ba-img-before {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      display: block;
+    }
+    .ba-img-before {
+      z-index: 2;
+      clip-path: inset(0 50% 0 0);
+    }
+    .ba-img-after { z-index: 1; }
+    .ba-handle {
+      position: absolute;
+      top: 0; left: 50%;
+      width: 4px; height: 100%;
+      background: #fff;
+      transform: translateX(-50%);
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      z-index: 10;
+      cursor: col-resize;
+    }
+    .ba-handle::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 44px; height: 44px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l-7 7 7 7'/%3E%3Cpath d='M15 5l7 7-7 7'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 18px;
+    }
+
+    .ba-text { }
+    .partner-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .partner-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .partner-logo {
+      font-size: 1rem;
+      font-weight: 900;
+      font-style: italic;
+      color: var(--navy);
+      letter-spacing: -1px;
+      border-bottom: 2px solid var(--navy);
+      padding-bottom: 1px;
+    }
+
+    /* ════════════════════════════════════════
+       VIRTUAL TOUR
+    ════════════════════════════════════════ */
+    .tour-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    @media (max-width: 768px) {
+      .tour-wrap { grid-template-columns: 1fr; gap: 32px; }
+    }
+    .cloudpano-wrap {
+      width: 100%;
+      height: 440px;
+      background: #f0f0f0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+
+    /* ════════════════════════════════════════
+       HOW IT WORKS
+    ════════════════════════════════════════ */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      margin-top: 40px;
+    }
+    @media (max-width: 600px) {
+      .steps-grid { grid-template-columns: 1fr; }
+    }
+    .step-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .step-icon {
+      width: 44px; height: 44px;
+      background: #e8edfa;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
+      margin-bottom: 14px;
     }
-
-    #deg-counter {
-      position: absolute;
-      top: 22px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 45;
-      color: rgba(255,255,255,0.55);
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      background: rgba(0,0,0,0.3);
-      backdrop-filter: blur(6px);
-      padding: 4px 14px;
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.1);
+    .step-icon svg {
+      width: 22px; height: 22px;
+      fill: var(--navy);
     }
-
-    .bottom-panel {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      z-index: 40;
-      padding: 36px 32px 32px;
-      background: linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.5) 60%, transparent 100%);
-    }
-
-    .chip {
-      display: inline-block;
-      background: var(--blue);
-      color: #fff;
-      padding: 3px 14px;
-      border-radius: 20px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-    .prop-title {
-      color: #fff;
-      font-size: 2rem;
+    .step-h3 {
+      font-size: 0.97rem;
       font-weight: 800;
-      line-height: 1.15;
-      margin-bottom: 6px;
+      color: var(--navy);
+      margin-bottom: 8px;
     }
-    .prop-sub {
-      color: rgba(255,255,255,0.6);
-      font-size: 0.95rem;
-      margin-bottom: 22px;
-    }
-    .stats {
-      display: flex;
-      gap: 36px;
-    }
-    .stat-val {
-      color: #fff;
-      font-size: 1.45rem;
-      font-weight: 700;
-    }
-    .stat-lbl {
-      color: rgba(255,255,255,0.5);
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
+    .step-p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.65;
     }
 
-    #scroll-hint {
-      position: absolute;
-      bottom: 160px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 45;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 9px;
-      color: rgba(255,255,255,0.75);
-      font-size: 0.8rem;
-      pointer-events: none;
-      transition: opacity 0.5s;
+    /* ════════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════════ */
+    .site-footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.8);
+      padding: 60px 24px 0;
     }
-    .mouse-icon {
-      width: 22px;
-      height: 34px;
-      border: 2px solid rgba(255,255,255,0.55);
-      border-radius: 11px;
-      position: relative;
-    }
-    .mouse-dot {
-      position: absolute;
-      top: 5px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 4px;
-      height: 7px;
-      background: rgba(255,255,255,0.8);
-      border-radius: 2px;
-      animation: mouseDot 1.6s ease-in-out infinite;
-    }
-    @keyframes mouseDot {
-      0%   { transform: translateX(-50%) translateY(0);    opacity: 1; }
-      100% { transform: translateX(-50%) translateY(14px); opacity: 0; }
-    }
-
-    .rot-track-wrap {
-      position: absolute;
-      right: 24px;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 45;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-    .rot-label {
-      color: rgba(255,255,255,0.4);
-      font-size: 0.62rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      writing-mode: vertical-rl;
-    }
-    .rot-track {
-      width: 4px;
-      height: 110px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 4px;
-      position: relative;
-    }
-    #rot-thumb {
-      position: absolute;
-      width: 10px;
-      height: 22px;
-      background: var(--blue);
-      border-radius: 5px;
-      left: -3px;
-      top: 0;
-      box-shadow: 0 0 10px rgba(26,86,219,0.7);
-      transition: top 0.08s;
-    }
-
-    /* Content below hero */
-    .page-content {
-      background: var(--dark);
-      padding: 80px 40px;
-      max-width: 900px;
+    .footer-inner {
+      max-width: 1100px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
+      gap: 40px;
+      padding-bottom: 48px;
     }
-    .page-content h2 {
+    @media (max-width: 768px) {
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+    }
+    .footer-col h4 {
+      color: var(--white);
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+    .footer-col p, .footer-col a {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.65);
+      display: block;
+      margin-bottom: 6px;
+      transition: color 0.2s;
+    }
+    .footer-col a:hover { color: var(--white); }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.12);
+      padding: 18px 0;
+      text-align: center;
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .newsletter-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: none;
+      font-family: inherit;
+      font-size: 0.88rem;
+      margin-bottom: 10px;
+      outline: none;
+    }
+    .newsletter-btn {
+      width: 100%;
+      background: var(--gold);
+      color: var(--white);
+      border: none;
+      padding: 11px 14px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .newsletter-btn:hover { background: var(--gold2); }
+
+    /* ════════════════════════════════════════
+       LOADING SCREEN
+    ════════════════════════════════════════ */
+    #loading {
+      position: fixed;
+      inset: 0;
+      background: var(--navy);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      transition: opacity 0.6s ease;
+    }
+    #loading.fade-out { opacity: 0; pointer-events: none; }
+    .loading-logo {
       color: #fff;
       font-size: 1.8rem;
       font-weight: 800;
-      margin-bottom: 16px;
+      letter-spacing: -0.5px;
     }
-    .page-content p {
-      color: rgba(255,255,255,0.6);
-      line-height: 1.7;
-      font-size: 1rem;
-      margin-bottom: 24px;
+    .loading-logo em { color: #5b9cf6; font-style: normal; }
+    .bar-track {
+      width: 220px; height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 4px;
+      overflow: hidden;
     }
-    .cta-btn {
-      display: inline-block;
-      background: var(--blue);
-      color: #fff;
-      padding: 14px 32px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 1rem;
-      text-decoration: none;
+    .bar-fill {
+      height: 100%;
+      background: #5b9cf6;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.25s;
+    }
+    .loading-label {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.82rem;
     }
   </style>
 </head>
 <body>
 
+<!-- Loading screen -->
 <div id="loading">
-  <div class="loading-logo">Asunto<span>raatali</span></div>
+  <div class="loading-logo">Asunto<em>räätäli</em></div>
   <div class="bar-track"><div class="bar-fill" id="bar-fill"></div></div>
   <div class="loading-label" id="loading-label">Ladataan...</div>
 </div>
 
-<section class="hero" id="hero">
-  <div class="hero-sticky">
+<!-- 8K status badge -->
+<div id="hires-label"></div>
+
+<!-- ════════ HEADER ════════ -->
+<header class="site-header" id="site-header">
+  <div class="header-inner">
+    <a class="site-logo" href="#">Asunto<em>räätäli</em></a>
+    <nav class="site-nav">
+      <a href="#">Myyjälle</a>
+      <a href="#">Kiinteistönvälittäjälle</a>
+      <a href="#">Yritys</a>
+      <a href="#">Artikkelit</a>
+      <a href="#">Yhteystiedot</a>
+    </nav>
+    <a class="header-cta" href="#">Tutustu kohteisiin</a>
+  </div>
+</header>
+
+<!-- ════════ HERO ════════ -->
+<section class="hero-section" id="hero-section">
+  <div class="hero-sticky" id="hero-sticky">
+
+    <!-- Three.js canvas -->
     <canvas id="panorama-canvas"></canvas>
 
-    <div id="progress"></div>
+    <!-- Dark overlay -->
+    <div class="hero-overlay"></div>
 
-    <div class="top-bar">
-      <a class="logo" href="#">Asunto<span>raatali</span></a>
-      <div class="badge-360">360</div>
+    <!-- Content -->
+    <div class="hero-content">
+      <div class="hero-stars">
+        <div class="star-row">
+          <!-- 5 stars -->
+          <svg class="star" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"><path d="M450 75L338 312 88 350C46 354 25 417 58 450L238 633 196 896C188 942 238 975 275 954L500 837 725 954C767 975 813 942 804 896L763 633 942 450C975 417 954 358 913 350L663 312 550 75C529 33 471 33 450 75Z"/></svg>
+          <svg class="star" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"><path d="M450 75L338 312 88 350C46 354 25 417 58 450L238 633 196 896C188 942 238 975 275 954L500 837 725 954C767 975 813 942 804 896L763 633 942 450C975 417 954 358 913 350L663 312 550 75C529 33 471 33 450 75Z"/></svg>
+          <svg class="star" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"><path d="M450 75L338 312 88 350C46 354 25 417 58 450L238 633 196 896C188 942 238 975 275 954L500 837 725 954C767 975 813 942 804 896L763 633 942 450C975 417 954 358 913 350L663 312 550 75C529 33 471 33 450 75Z"/></svg>
+          <svg class="star" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"><path d="M450 75L338 312 88 350C46 354 25 417 58 450L238 633 196 896C188 942 238 975 275 954L500 837 725 954C767 975 813 942 804 896L763 633 942 450C975 417 954 358 913 350L663 312 550 75C529 33 471 33 450 75Z"/></svg>
+          <svg class="star" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg"><path d="M450 75L338 312 88 350C46 354 25 417 58 450L238 633 196 896C188 942 238 975 275 954L500 837 725 954C767 975 813 942 804 896L763 633 942 450C975 417 954 358 913 350L663 312 550 75C529 33 471 33 450 75Z"/></svg>
+        </div>
+        <span class="hero-stars-label">Luotettava valinta</span>
+      </div>
+
+      <h1 class="hero-h1">Valmiit remontti&shy;suunnitelmat ja tarjoukset – paras myyntivaltti asunnollesi</h1>
+      <p class="hero-sub">Vauhdita asuntokauppaa valmiilla remonttisuunnitelmalla ja tarjouksella myynnin tueksi</p>
+      <div class="hero-badge">Asiakastyytyväisyys 100%</div>
+      <a class="hero-btn" href="#">Tutustu asuntoihin</a>
     </div>
 
-    <div id="deg-counter">221</div>
+    <!-- Scroll hint -->
+    <div class="hero-scroll-hint" id="scroll-hint">
+      <div class="scroll-mouse"><div class="scroll-dot"></div></div>
+      <span>Scrollaa alas</span>
+    </div>
 
-    <div class="bottom-panel">
-      <div class="chip">360 Virtuaaliesittely</div>
-      <div class="prop-title">Moderni keittiö</div>
-      <div class="prop-sub">Scrollaa kierrellä tilaa ympäri</div>
-      <div class="stats">
-        <div>
-          <div class="stat-val">360</div>
-          <div class="stat-lbl">Panoraama</div>
-        </div>
-        <div>
-          <div class="stat-val">8K</div>
-          <div class="stat-lbl">Resoluutio</div>
-        </div>
-        <div>
-          <div class="stat-val">VR</div>
-          <div class="stat-lbl">Yhteensopiva</div>
+  </div>
+</section>
+
+<!-- ════════ BEFORE / AFTER ════════ -->
+<section class="section section--white" id="before-after">
+  <div class="section-inner">
+    <div class="ba-wrap">
+      <!-- Slider -->
+      <div class="ba-slider" id="baSlider">
+        <img class="ba-img-after" src="https://asuntoraatali.fi/wp-content/uploads/2026/06/2-scaled.jpg.webp" alt="Jälkeen" loading="lazy" />
+        <img class="ba-img-before" id="baImgBefore" src="https://asuntoraatali.fi/wp-content/uploads/2026/06/1-scaled.jpg.webp" alt="Ennen" loading="lazy" />
+        <div class="ba-handle" id="baHandle"></div>
+      </div>
+      <!-- Text -->
+      <div class="ba-text">
+        <p class="section-tag">Ennen &amp; Jälkeen</p>
+        <h2 class="section-h2">Näytä ostajalle asuntosi todellinen potentiaali</h2>
+        <p class="section-p">Asuntoräätäli Oy tarjoaa täysin uudenlaisen tavan myydä remonttikuntoinen asunto. Suunnittelemme asuntoosi uniikin remonttikokonaisuuden, luomme realistiset havainnekuvat ja annamme tarjouksen koko urakasta. Näin saat luotua remonttikuntoiseen asuntoosi helposti lisäarvoa ilman, että teet itse mitään!</p>
+        <div class="partner-row">
+          <span class="partner-label">Yhteistyössä</span>
+          <span class="partner-logo">AIRU</span>
         </div>
       </div>
     </div>
+  </div>
+</section>
 
-    <div id="scroll-hint">
-      <div class="mouse-icon"><div class="mouse-dot"></div></div>
-      <span>Scrollaa kierrellä tilaa</span>
-    </div>
-
-    <div class="rot-track-wrap">
-      <div class="rot-label">kierra</div>
-      <div class="rot-track"><div id="rot-thumb"></div></div>
+<!-- ════════ VIRTUAL TOUR ════════ -->
+<section class="section section--light">
+  <div class="section-inner">
+    <div class="tour-wrap">
+      <div>
+        <p class="section-tag">360° Virtuaaliesittely</p>
+        <h2 class="section-h2">Asunnon virtuaaliesittely</h2>
+        <p class="section-p">Yhdessä rakennusliikkeen kanssa suunnittelemme asuntoon yksilöidyn remonttisuunnitelman ja luomme näyttävän 360-virtuaaliesittelyn, jossa asiakas pääsee tutustumaan sekä kohteen nykytilaan että visualisoituun remonttisuunnitelmaan yksityiskohtaisesti.</p>
+        <p class="section-p">Huippurealistiset panoraamakuvat tekevät lopputuloksesta todellisen jo ennen ensimmäistäkään remonttiaskelta!</p>
+      </div>
+      <div class="cloudpano-wrap" id="cloudpano-container">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:0.9rem;">Ladataan 360° esittely...</div>
+      </div>
     </div>
   </div>
 </section>
 
-<section style="background: var(--dark); padding: 0 0 80px;">
-  <div class="page-content">
-    <h2>Tervetuloa virtuaaliesittelyyn</h2>
-    <p>
-      Tama 360-panoraama on renderöity Asuntoraatalin kohteesta. Scrollaamalla
-      pyöritataan tila ympari ja tutustutaan kohteeseen ennen paikan paalle tuloa.
-    </p>
-    <a class="cta-btn" href="https://asuntoraatali.fi" target="_blank">
-      Katso kaikki kohteet
-    </a>
+<!-- ════════ HOW IT WORKS ════════ -->
+<section class="section section--white">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:8px;">
+      <h2 class="section-h2" style="display:inline-block;">Miten palvelumme toimii?</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-icon">
+          <svg viewBox="0 0 640 512" xmlns="http://www.w3.org/2000/svg"><path d="M272,288H208a16,16,0,0,1-16-16V208a16,16,0,0,1,16-16h64a16,16,0,0,1,16,16v37.12C299.11,232.24,315,224,332.8,224H469.74l6.65-7.53A16.51,16.51,0,0,0,480,207a16.31,16.31,0,0,0-4.75-10.61L416,144V48a16,16,0,0,0-16-16H368a16,16,0,0,0-16,16V87.3L263.5,8.92C258,4,247.45,0,240.05,0s-17.93,4-23.47,8.92L4.78,196.42A16.15,16.15,0,0,0,0,207a16.4,16.4,0,0,0,3.55,9.39L22.34,237.7A16.22,16.22,0,0,0,33,242.48,16.51,16.51,0,0,0,42.34,239L64,219.88V384a32,32,0,0,0,32,32H272ZM629.33,448H592V288c0-17.67-12.89-32-28.8-32H332.8c-15.91,0-28.8,14.33-28.8,32V448H266.67A10.67,10.67,0,0,0,256,458.67v10.66A42.82,42.82,0,0,0,298.6,512H597.4A42.82,42.82,0,0,0,640,469.33V458.67A10.67,10.67,0,0,0,629.33,448ZM544,448H352V304H544Z"/></svg>
+        </div>
+        <h3 class="step-h3">1. Remonttikuntoinen kohde</h3>
+        <p class="step-p">Teemme yhteistyötä kiinteistönvälittäjien kanssa ja tarjoamme palveluamme sopiviin kohteisiin.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">
+          <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0z"/></svg>
+        </div>
+        <h3 class="step-h3">2. Luomme vision uudesta kodista</h3>
+        <p class="step-p">Laadimme kohteeseen yksilöidyn remonttisuunnitelman, visuaaliset havainnekuvat sekä materiaalilaskelmat.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">
+          <svg viewBox="0 0 496 512" xmlns="http://www.w3.org/2000/svg"><path d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm80 152c17.7 0 32 14.3 32 32s-14.3 32-32 32-32-14.3-32-32 14.3-32 32-32zm-160 0c17.7 0 32 14.3 32 32s-14.3 32-32 32-32-14.3-32-32 14.3-32 32-32zm88 272h-16c-73.4 0-134-55-142.9-126-1.2-9.5 6.3-18 15.9-18h270c9.6 0 17.1 8.4 15.9 18-8.9 71-69.5 126-142.9 126z"/></svg>
+        </div>
+        <h3 class="step-h3">3. Ostaja näkee vaihtoehdot ja kiinnostuu</h3>
+        <p class="step-p">Asunnon ostaja saa käyttöönsä valmiit suunnitelmat, materiaalihinnat ja urakkatarjouksen – kodin, joka on <strong>remonttia vaille valmis</strong>.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-icon">
+          <svg viewBox="0 0 576 512" xmlns="http://www.w3.org/2000/svg"><path d="M280.37 148.26L96 300.11V464a16 16 0 0 0 16 16l112.06-.29a16 16 0 0 0 15.92-16V368a16 16 0 0 1 16-16h64a16 16 0 0 1 16 16v95.64a16 16 0 0 0 16 16.05L464 480a16 16 0 0 0 16-16V300L295.67 148.26a12.19 12.19 0 0 0-15.3 0zM571.6 251.47L488 182.56V44.05a12 12 0 0 0-12-12h-56a12 12 0 0 0-12 12v72.61L318.47 43a48 48 0 0 0-61 0L4.34 251.47a12 12 0 0 0-1.6 16.9l25.5 31A12 12 0 0 0 45.15 301l235.22-193.74a12.19 12.19 0 0 1 15.3 0L530.9 301a12 12 0 0 0 16.9-1.6l25.5-31a12 12 0 0 0-1.7-16.93z"/></svg>
+        </div>
+        <h3 class="step-h3">4. Kaupat syntyvät ja kaikki hyötyvät!</h3>
+        <p class="step-p">Palvelumme veloitus toteutuu samalla periaatteella kuin välityspalkkio. Myyjän ei tarvitse maksaa mitään etukäteen.</p>
+      </div>
+    </div>
   </div>
 </section>
 
+<!-- ════════ FOOTER ════════ -->
+<footer class="site-footer" id="footer">
+  <div class="footer-inner">
+    <div class="footer-col">
+      <h4>Yhteystiedot</h4>
+      <a href="mailto:myynti@asuntoraatali.fi">myynti@asuntoraatali.fi</a>
+      <a href="tel:+3584578736248">+358 45 7873 6248</a>
+      <br/>
+      <h4 style="margin-top:20px;">Kohteet</h4>
+      <p>Kohteet listataan pian</p>
+      <br/>
+      <h4>Yritys</h4>
+      <p>Asuntoräätäli Oy (3605575-9) tarjoaa parhaan myyntivaltin asunnollesi ympäri Suomen.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Sivut</h4>
+      <a href="#">Etusivu</a>
+      <a href="#">Kohteet (tulossa)</a>
+      <a href="#">Asunnon myyjälle</a>
+      <a href="#">Kiinteistövälittäjille</a>
+      <a href="#">Yrityksestä</a>
+      <a href="#">Ota yhteyttä</a>
+      <a href="#">Tietosuojaseloste</a>
+      <a href="#">Evästeseloste</a>
+    </div>
+    <div class="footer-col">
+      <h4>Palvelut</h4>
+      <a href="#">360° Virtuaaliesittely</a>
+      <a href="#">Remonttisuunnittelu</a>
+      <a href="#">Havainnekuvat</a>
+      <a href="#">Urakkatarjoukset</a>
+    </div>
+    <div class="footer-col">
+      <h4>Saa ilmoitus uusista kohteista</h4>
+      <p style="font-size:0.82rem;margin-bottom:14px;">Tilaamalla uutiskirjeen saat muistutuksen, kun uusi kohde listataan myyntiin.</p>
+      <input class="newsletter-input" type="email" placeholder="esimerkki@domain.fi" />
+      <button class="newsletter-btn">Tilaa ilmainen muistutus &rarr;</button>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    &copy; 2026 Asuntoräätäli Oy. Kaikki oikeudet pidätetään.
+  </div>
+</footer>
+
+<!-- Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
-  /* ── Config ── */
-  var IMAGE_LO   = 'panorama.png';
-  var IMAGE_HI   = 'https://i.ibb.co/8443ZvHh/spherical.jpg';
-  var START_DEG  = 221;
-  var START_RAD  = START_DEG * (Math.PI / 180);
-  var ROTATIONS  = 0.45;
-  var LERP       = 0.03;
-  var THUMB_MAX  = 88;
+  /* ── Config ──────────────────────────────────── */
+  var IMAGE_LO  = 'panorama.png';
+  var IMAGE_HI  = 'https://i.ibb.co/8443ZvHh/spherical.jpg';
+  var START_DEG = 226;          // panorama start angle
+  var END_DEG   = 290;          // panorama end angle  (64° range)
+  var START_RAD = START_DEG * Math.PI / 180;
+  var END_RAD   = END_DEG   * Math.PI / 180;
+  var LERP      = 0.04;
 
-  /* ── Three.js ── */
+  /* ── Renderer ────────────────────────────────── */
   var canvas   = document.getElementById('panorama-canvas');
   var scene    = new THREE.Scene();
   var camera   = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
@@ -390,6 +766,7 @@
   var barFill    = document.getElementById('bar-fill');
   var loadLabel  = document.getElementById('loading-label');
   var loadScreen = document.getElementById('loading');
+  var hiresEl    = document.getElementById('hires-label');
 
   var sphere   = null;
   var loader   = new THREE.TextureLoader();
@@ -424,42 +801,33 @@
     }, 200);
   }
 
-  /* ── Stage 2: 8K loads silently in background ── */
+  /* ── Stage 2: 8K in background ──────────────── */
   function loadHiRes(showProgress) {
-    var hiLabel = document.createElement('div');
-    hiLabel.style.cssText =
-      'position:fixed;bottom:12px;right:16px;z-index:60;' +
-      'color:rgba(255,255,255,0.45);font-size:0.7rem;font-family:inherit;' +
-      'background:rgba(0,0,0,0.4);padding:3px 10px;border-radius:12px;transition:opacity 0.5s;';
-    hiLabel.textContent = '8K ladataan...';
-    document.body.appendChild(hiLabel);
-
+    hiresEl.style.display = 'block';
+    hiresEl.textContent = '8K ladataan...';
     loader.load(
       IMAGE_HI,
       function(tex) {
         showScene(applyTex(tex));
         if (showProgress) hideLoading();
-        hiLabel.textContent = '8K valmis';
+        hiresEl.textContent = '8K valmis';
         setTimeout(function() {
-          hiLabel.style.opacity = '0';
-          setTimeout(function() { hiLabel.remove(); }, 500);
+          hiresEl.style.opacity = '0';
+          setTimeout(function() { hiresEl.style.display = 'none'; hiresEl.style.opacity = '1'; }, 500);
         }, 1500);
       },
       function(e) {
         if (e.total > 0) {
           var p = Math.round(e.loaded / e.total * 100);
-          hiLabel.textContent = '8K ladataan... ' + p + '%';
-          if (showProgress) {
-            barFill.style.width = p + '%';
-            loadLabel.textContent = 'Ladataan 8K... ' + p + '%';
-          }
+          hiresEl.textContent = '8K ladataan... ' + p + '%';
+          if (showProgress) { barFill.style.width = p + '%'; loadLabel.textContent = 'Ladataan 8K... ' + p + '%'; }
         }
       },
-      function() { hiLabel.textContent = '8K virhe'; }
+      function() { hiresEl.textContent = '8K virhe'; }
     );
   }
 
-  /* ── Stage 1: low-res placeholder -> opens in seconds ── */
+  /* ── Stage 1: low-res → opens instantly ─────── */
   loader.load(
     IMAGE_LO,
     function(tex) {
@@ -468,56 +836,96 @@
       loadHiRes(false);
     },
     null,
-    function() {
-      /* low-res not available (e.g. CORS) -> load 8K directly with progress */
-      loadHiRes(true);
-    }
+    function() { loadHiRes(true); }
   );
 
   camera.position.set(0, 0, 0.01);
 
-  /* ── Scroll -> rotation ── */
+  /* ── Scroll → rotation (226° to 290°) ───────── */
   var targetY  = START_RAD;
   var currentY = START_RAD;
 
-  var progressEl = document.getElementById('progress');
-  var rotThumb   = document.getElementById('rot-thumb');
-  var scrollHint = document.getElementById('scroll-hint');
-  var degCounter = document.getElementById('deg-counter');
-  var heroEl     = document.getElementById('hero');
+  var heroSection = document.getElementById('hero-section');
+  var scrollHint  = document.getElementById('scroll-hint');
+  var siteHeader  = document.getElementById('site-header');
 
   window.addEventListener('scroll', function() {
-    var heroDriver = heroEl.offsetHeight - innerHeight;
-    var scrolled   = Math.max(0, window.scrollY - heroEl.offsetTop);
+    var heroDriver = heroSection.offsetHeight - innerHeight;
+    var scrolled   = Math.max(0, window.scrollY - heroSection.offsetTop);
     var pct        = Math.min(scrolled / heroDriver, 1);
 
-    targetY = START_RAD + pct * Math.PI * 2 * ROTATIONS;
+    /* interpolate from START_RAD to END_RAD */
+    targetY = START_RAD + pct * (END_RAD - START_RAD);
 
-    progressEl.style.width = (pct * 100) + '%';
-    rotThumb.style.top     = (pct * THUMB_MAX) + 'px';
-    scrollHint.style.opacity = scrolled > 60 ? '0' : '1';
+    scrollHint.style.opacity = scrolled > 80 ? '0' : '1';
+
+    /* header scroll class */
+    if (window.scrollY > 60) {
+      siteHeader.classList.add('scrolled');
+    } else {
+      siteHeader.classList.remove('scrolled');
+    }
   });
 
-  /* ── Animation loop ── */
+  /* ── Animation loop ──────────────────────────── */
   function tick() {
     requestAnimationFrame(tick);
     currentY += (targetY - currentY) * LERP;
     if (sphere) sphere.rotation.y = currentY;
-
-    var raw = currentY % (Math.PI * 2);
-    if (raw < 0) raw += Math.PI * 2;
-    var deg = Math.round((raw / (Math.PI * 2)) * 360);
-    degCounter.textContent = deg + '\u00b0';
-
     renderer.render(scene, camera);
   }
   tick();
 
+  /* ── Resize ──────────────────────────────────── */
   window.addEventListener('resize', function() {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
   });
+
+  /* ════════════════════════════════════════
+     Before/After slider
+  ════════════════════════════════════════ */
+  (function() {
+    var slider  = document.getElementById('baSlider');
+    var before  = document.getElementById('baImgBefore');
+    var handle  = document.getElementById('baHandle');
+    var dragging = false;
+
+    function setPos(x) {
+      var rect = slider.getBoundingClientRect();
+      var pct  = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
+      before.style.clipPath = 'inset(0 ' + (100 - pct) + '% 0 0)';
+      handle.style.left = pct + '%';
+    }
+
+    handle.addEventListener('mousedown', function(e) { dragging = true; e.preventDefault(); });
+    slider.addEventListener('mousedown', function(e) { dragging = true; setPos(e.clientX); e.preventDefault(); });
+    document.addEventListener('mouseup',   function() { dragging = false; });
+    document.addEventListener('mousemove', function(e) { if (dragging) { e.preventDefault(); setPos(e.clientX); } });
+
+    slider.addEventListener('touchstart', function(e) { dragging = true; setPos(e.touches[0].clientX); }, {passive:false});
+    document.addEventListener('touchend',   function() { dragging = false; });
+    document.addEventListener('touchmove',  function(e) { if (dragging) { e.preventDefault(); setPos(e.touches[0].clientX); } }, {passive:false});
+  })();
+
+  /* ════════════════════════════════════════
+     CloudPano embed
+  ════════════════════════════════════════ */
+  (function() {
+    var container = document.getElementById('cloudpano-container');
+    container.innerHTML = '';
+    var s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = 'https://app.cloudpano.com/public/shareScript.js';
+    s.setAttribute('data-short', 'P662dq1Ym');
+    s.setAttribute('data-path', 'tours');
+    s.setAttribute('data-is-self-hosted', 'false');
+    s.setAttribute('width', '100%');
+    s.setAttribute('height', '440px');
+    container.appendChild(s);
+  })();
 </script>
 </body>
 </html>
