@@ -764,9 +764,9 @@
   var IMAGE_HI    = 'https://i.ibb.co/8443ZvHh/spherical.jpg';
   var START_DEG   = 226;
   var START_RAD   = START_DEG * Math.PI / 180;
-  var BASE_SPEED  = 0.00028;  // rad/frame idle rotation  (~1°/s at 60fps, very slow)
-  var SCROLL_MULT = 0.006;    // scroll delta px → rad boost
-  var FRICTION    = 0.90;     // how fast scroll boost decays (0-1, lower = faster fade)
+  var BASE_SPEED  = 0.00028;  // rad/frame idle rotation (~1°/s at 60fps)
+  var SCROLL_MULT = 0.00044;  // scroll delta px → rad boost (prev. lerp equiv. × 1.10)
+  var FRICTION    = 0.86;     // boost fades in ~0.15s – shorter = less overshoot
 
   /* ── Renderer ────────────────────────────────── */
   var canvas   = document.getElementById('panorama-canvas');
