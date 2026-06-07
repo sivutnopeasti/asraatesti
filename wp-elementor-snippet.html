@@ -1,6 +1,7 @@
 <!-- =====================================================
-  ASUNTORÄÄTÄLI – 360° PANORAAMA KOKO SIVUN TAUSTANA
+  ASUNTORÄÄTÄLI – 360° PANORAAMA TAUSTA
   Liitä tämä KOKO sisältö Elementor Custom HTML -widgettiin
+  Hero-kontaineri: ensimmäinen elementti
   ===================================================== -->
 
 <style>
@@ -12,6 +13,7 @@
   height: 100vh;
   z-index: 0;
   pointer-events: none;
+  display: none; /* JS näyttää heti kun kuva latautuu */
 }
 #asra-pano-canvas {
   display: block;
@@ -29,18 +31,6 @@
   background: rgba(5, 15, 35, 0.50);
   backdrop-filter: blur(1px);
   -webkit-backdrop-filter: blur(1px);
-}
-
-/* ── Elementor-osiot läpinäkyviksi jotta panoraama näkyy ──
-   Jos haluat jonkin osion omalla taustavärillä, poista se täältä
-   ja aseta sen tausta Elementorissa suoraan. ── */
-.elementor-section,
-.elementor-top-section,
-.e-con[data-element_type="container"] {
-  background-color: transparent !important;
-  background-image: none !important;
-  position: relative !important;
-  z-index: 2 !important;
 }
 
 /* ── Header pysyy aina ylimpänä ── */
@@ -64,15 +54,27 @@ header,
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 <script>
 (function () {
+  var wrap   = document.getElementById('asra-pano-wrap');
   var canvas = document.getElementById('asra-pano-canvas');
 
-  /* ── Konfiguraatio ── */
-  var START_RAD   = 226 * Math.PI / 180;
-  var BASE_SPEED  = 0.00018;   /* automaattipyörintä – hidas koko sivun ajan */
-  var SCROLL_MULT = 0.00030;   /* scroll lisää vauhtia */
-  var FRICTION    = 0.88;
+  /* ── Konfiguraatio ──────────────────────────────
+     Muuta näitä arvoja haluamaksesi:
+     BASE_SPEED  = automaattipyörintä (0 = ei automaattia)
+     SCROLL_MULT = scroll-boostin voimakkuus
+     START_DEG   = aloituskulma asteina
+     END_DEG     = loppukulma asteina (ping-pong tässä välillä)
+  ── */
+  var BASE_SPEED  = 0.00000;
+  var SCROLL_MULT = 0.00006;
+  var FRICTION    = 0.86;
+  var START_DEG   = 210;
+  var END_DEG     = 326;
+
+  var START_RAD = START_DEG * Math.PI / 180;
+  var END_RAD   = END_DEG   * Math.PI / 180;
 
   var currentAngle   = START_RAD;
+  var direction      = 1;   /* 1 = eteenpäin, -1 = taaksepäin */
   var scrollVelocity = 0;
   var lastScrollY    = window.scrollY;
 
@@ -103,6 +105,7 @@ header,
       sphere = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex }));
       sphere.rotation.y = currentAngle;
       scene.add(sphere);
+      wrap.style.display = 'block'; /* näytä vasta kun kuva on ladattu */
     }
   );
 
@@ -113,11 +116,24 @@ header,
     scrollVelocity += dy * SCROLL_MULT;
   });
 
-  /* ── Animaatiosilmukka – käy koko sivun ajan ── */
+  /* ── Animaatiosilmukka – ping-pong START_DEG–END_DEG välillä ── */
   function tick() {
     requestAnimationFrame(tick);
-    currentAngle   += BASE_SPEED + scrollVelocity;
+
+    currentAngle   += scrollVelocity;
     scrollVelocity *= FRICTION;
+
+    currentAngle += BASE_SPEED * direction;
+
+    /* Ping-pong: käänny reunoilla */
+    if (direction > 0 && currentAngle >= END_RAD) {
+      currentAngle = END_RAD;
+      direction = -1;
+    } else if (direction < 0 && currentAngle <= START_RAD) {
+      currentAngle = START_RAD;
+      direction = 1;
+    }
+
     if (sphere) sphere.rotation.y = currentAngle;
     renderer.render(scene, camera);
   }
